@@ -130,7 +130,7 @@ mb-cli/
 
 ## Implementation Steps
 
-> **Progress: 12/14 steps completed**
+> **Progress: 13/14 steps completed**
 > ✅ = done, ⬚ = not started
 
 ### Step 1: Project Scaffolding + Config + Version ✅
@@ -419,7 +419,7 @@ Configure multi-platform release builds and homebrew tap.
 
 ---
 
-### Step 13: Agent-Friendly Enhancements ⬚
+### Step 13: Agent-Friendly Enhancements ✅
 
 Make the CLI optimised for AI agent consumption, following the best practices from [Rewrite your CLI for AI Agents](https://justin.poehnelt.com/posts/rewrite-your-cli-for-ai-agents/) and mirroring what was done in [logbasset PR #33](https://github.com/andreagrandi/logbasset/pull/33).
 

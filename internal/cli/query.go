@@ -8,6 +8,7 @@ import (
 
 	"github.com/andreagrandi/mb-cli/internal/client"
 	"github.com/andreagrandi/mb-cli/internal/formatter"
+	"github.com/andreagrandi/mb-cli/internal/validation"
 	"github.com/spf13/cobra"
 )
 
@@ -31,6 +32,7 @@ func init() {
 	querySQLCmd.Flags().String("sql", "", "SQL query to execute (required)")
 	querySQLCmd.Flags().String("export", "", "Export format: csv, json, xlsx")
 	querySQLCmd.Flags().Int("limit", 0, "Append LIMIT to SQL query")
+	querySQLCmd.Flags().String("fields", "", "Comma-separated list of columns to include in output")
 	querySQLCmd.MarkFlagRequired("db")
 	querySQLCmd.MarkFlagRequired("sql")
 }
@@ -45,6 +47,10 @@ func runQuerySQL(cmd *cobra.Command, args []string) error {
 	sql, _ := cmd.Flags().GetString("sql")
 	export, _ := cmd.Flags().GetString("export")
 	limit, _ := cmd.Flags().GetInt("limit")
+
+	if err := validation.ValidateSQL(sql); err != nil {
+		return err
+	}
 
 	dbID, err := resolveDatabaseID(c, dbFlag)
 	if err != nil {
@@ -70,13 +76,15 @@ func runQuerySQL(cmd *cobra.Command, args []string) error {
 	}
 
 	format, _ := cmd.Flags().GetString("format")
+	fields, _ := cmd.Flags().GetString("fields")
 
 	columns := make([]string, len(result.Data.Columns))
 	for i, col := range result.Data.Columns {
 		columns[i] = col.Name
 	}
 
-	return formatter.FormatQueryResults(format, columns, result.Data.Rows, os.Stdout)
+	columns, rows := formatter.FilterColumns(columns, result.Data.Rows, fields)
+	return formatter.FormatQueryResults(format, columns, rows, os.Stdout)
 }
 
 func resolveDatabaseID(c *client.Client, dbFlag string) (int, error) {

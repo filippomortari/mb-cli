@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -48,4 +49,54 @@ func FormatQueryResults(format string, columns []string, rows [][]any, writer io
 	default:
 		return fmt.Errorf("unsupported format: %s", format)
 	}
+}
+
+// FilterColumns filters columns and rows to include only the specified fields.
+// Returns filtered columns and rows. If fields is empty, returns the original data unchanged.
+func FilterColumns(columns []string, rows [][]any, fields string) ([]string, [][]any) {
+	if fields == "" {
+		return columns, rows
+	}
+
+	wanted := make(map[string]bool)
+	for _, f := range splitFields(fields) {
+		wanted[f] = true
+	}
+
+	var indices []int
+	var filteredCols []string
+	for i, col := range columns {
+		if wanted[col] {
+			indices = append(indices, i)
+			filteredCols = append(filteredCols, col)
+		}
+	}
+
+	if len(indices) == 0 {
+		return columns, rows
+	}
+
+	filteredRows := make([][]any, len(rows))
+	for r, row := range rows {
+		filteredRow := make([]any, len(indices))
+		for j, idx := range indices {
+			if idx < len(row) {
+				filteredRow[j] = row[idx]
+			}
+		}
+		filteredRows[r] = filteredRow
+	}
+
+	return filteredCols, filteredRows
+}
+
+func splitFields(fields string) []string {
+	var result []string
+	for _, f := range strings.Split(fields, ",") {
+		f = strings.TrimSpace(f)
+		if f != "" {
+			result = append(result, f)
+		}
+	}
+	return result
 }
