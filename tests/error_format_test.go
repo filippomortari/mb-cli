@@ -9,10 +9,10 @@ import (
 
 func TestClassifyConfigError(t *testing.T) {
 	tests := []struct {
-		name           string
-		errMsg         string
-		expectedType   string
-		hasSuggestion  bool
+		name          string
+		errMsg        string
+		expectedType  string
+		hasSuggestion bool
 	}{
 		{
 			name:          "missing MB_HOST",
