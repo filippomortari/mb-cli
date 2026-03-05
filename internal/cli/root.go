@@ -20,6 +20,11 @@ Before using mb-cli, set your environment variables:
   export MB_HOST=https://your-metabase-instance.com
   export MB_API_KEY=your-api-key`,
 	SilenceUsage: true,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		if !cmd.Flags().Changed("format") && IsTTY() {
+			cmd.Flags().Set("format", "table")
+		}
+	},
 }
 
 func Execute() {

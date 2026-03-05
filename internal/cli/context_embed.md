@@ -38,7 +38,7 @@ Set both environment variables (required):
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--format`, `-f` | string | `json` | Output format: `json` or `table` |
+| `--format`, `-f` | string | `json` (piped) / `table` (TTY) | Output format: `json` or `table` |
 | `--verbose`, `-v` | bool | false | Show request details on stderr |
 
 ## Command-Specific Flags
@@ -82,8 +82,10 @@ Resolution errors:
 
 ## Output Formats
 
-- `json` (default): Pretty-printed JSON
-- `table`: Human-readable tabular output using aligned columns
+- `json`: Pretty-printed JSON (default when stdout is piped/non-TTY)
+- `table`: Human-readable tabular output using aligned columns (default when stdout is a TTY)
+
+When stdout is not a TTY (piped to another program), the default format is `json`. In a terminal, the default is `table`. An explicit `--format` flag always overrides auto-detection.
 
 Query result commands (`query sql`, `card run`, `table data`) format output as column/row tables in both formats.
 
