@@ -59,10 +59,8 @@ release:
   draft: false
   prerelease: auto
 
-homebrew_casks:
+brews:
   - name: mb-cli
-    binaries:
-      - mb-cli
     repository:
       owner: andreagrandi
       name: homebrew-tap
@@ -70,6 +68,11 @@ homebrew_casks:
     commit_author:
       name: goreleaserbot
       email: goreleaser@github.com
-    directory: Casks
+    directory: Formula
     homepage: "https://github.com/andreagrandi/mb-cli"
     description: "mb-cli - A read-only CLI for the Metabase API"
+    license: "MIT"
+    test: |
+      system "#{bin}/mb-cli --version"
+    install: |
+      bin.install "mb-cli"
