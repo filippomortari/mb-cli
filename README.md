@@ -1,5 +1,7 @@
 # mb-cli
 
+<img src="mb-cli-logo.png" width="50%" alt="mb-cli">
+
 A read-only CLI for the Metabase API. Designed for terminal users and AI coding agents (Claude, Codex) to explore databases, inspect schemas, and run ad-hoc queries.
 
 ## Installation
