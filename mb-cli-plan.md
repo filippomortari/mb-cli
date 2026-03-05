@@ -15,46 +15,46 @@ All endpoints used by this CLI. Despite some being POST, they are all **read-onl
 ### Database (all GET)
 | Method | Endpoint | CLI Command | Purpose |
 |--------|----------|-------------|---------|
-| GET | `/api/database/` | `mb database list` | List all databases |
-| GET | `/api/database/{id}` | `mb database get <id>` | Get database details |
-| GET | `/api/database/{id}/metadata` | `mb database metadata <id>` | Full metadata (tables + fields) |
-| GET | `/api/database/{id}/fields` | `mb database fields <id>` | List all fields in database |
-| GET | `/api/database/{id}/schemas` | `mb database schemas <id>` | List schema names |
-| GET | `/api/database/{id}/schema/{schema}` | `mb database schema <id> <schema>` | Tables in a specific schema |
+| GET | `/api/database/` | `mb-cli database list` | List all databases |
+| GET | `/api/database/{id}` | `mb-cli database get <id>` | Get database details |
+| GET | `/api/database/{id}/metadata` | `mb-cli database metadata <id>` | Full metadata (tables + fields) |
+| GET | `/api/database/{id}/fields` | `mb-cli database fields <id>` | List all fields in database |
+| GET | `/api/database/{id}/schemas` | `mb-cli database schemas <id>` | List schema names |
+| GET | `/api/database/{id}/schema/{schema}` | `mb-cli database schema <id> <schema>` | Tables in a specific schema |
 
 ### Table (all GET)
 | Method | Endpoint | CLI Command | Purpose |
 |--------|----------|-------------|---------|
-| GET | `/api/table/` | `mb table list` | List all tables |
-| GET | `/api/table/{id}` | `mb table get <id>` | Get table details |
-| GET | `/api/table/{id}/query_metadata` | `mb table metadata <id>` | Table metadata with fields |
-| GET | `/api/table/{id}/fks` | `mb table fks <id>` | Foreign key relationships |
-| GET | `/api/table/{table-id}/data` | `mb table data <id>` | Get raw table data |
+| GET | `/api/table/` | `mb-cli table list` | List all tables |
+| GET | `/api/table/{id}` | `mb-cli table get <id>` | Get table details |
+| GET | `/api/table/{id}/query_metadata` | `mb-cli table metadata <id>` | Table metadata with fields |
+| GET | `/api/table/{id}/fks` | `mb-cli table fks <id>` | Foreign key relationships |
+| GET | `/api/table/{table-id}/data` | `mb-cli table data <id>` | Get raw table data |
 
 ### Field (all GET)
 | Method | Endpoint | CLI Command | Purpose |
 |--------|----------|-------------|---------|
-| GET | `/api/field/{id}` | `mb field get <id>` | Get field details |
-| GET | `/api/field/{id}/summary` | `mb field summary <id>` | Field summary statistics |
-| GET | `/api/field/{id}/values` | `mb field values <id>` | Distinct values for a field |
+| GET | `/api/field/{id}` | `mb-cli field get <id>` | Get field details |
+| GET | `/api/field/{id}/summary` | `mb-cli field summary <id>` | Field summary statistics |
+| GET | `/api/field/{id}/values` | `mb-cli field values <id>` | Distinct values for a field |
 
 ### Dataset / Query (POST but read-only)
 | Method | Endpoint | CLI Command | Purpose |
 |--------|----------|-------------|---------|
-| POST | `/api/dataset/` | `mb query sql --db <id-or-name> --sql "..."` | Run native SQL query |
-| POST | `/api/dataset/{export-format}` | `mb query sql --db <id> --sql "..." --export csv` | Export query results |
+| POST | `/api/dataset/` | `mb-cli query sql --db <id-or-name> --sql "..."` | Run native SQL query |
+| POST | `/api/dataset/{export-format}` | `mb-cli query sql --db <id> --sql "..." --export csv` | Export query results |
 
 ### Card / Saved Questions
 | Method | Endpoint | CLI Command | Purpose |
 |--------|----------|-------------|---------|
-| GET | `/api/card/` | `mb card list` | List saved questions |
-| GET | `/api/card/{id}` | `mb card get <id>` | Get card details |
-| POST | `/api/card/{card-id}/query` | `mb card run <id>` | Execute a saved question |
+| GET | `/api/card/` | `mb-cli card list` | List saved questions |
+| GET | `/api/card/{id}` | `mb-cli card get <id>` | Get card details |
+| POST | `/api/card/{card-id}/query` | `mb-cli card run <id>` | Execute a saved question |
 
 ### Search (GET)
 | Method | Endpoint | CLI Command | Purpose |
 |--------|----------|-------------|---------|
-| GET | `/api/search/` | `mb search <query>` | Search across all Metabase items |
+| GET | `/api/search/` | `mb-cli search <query>` | Search across all Metabase items |
 
 ---
 
@@ -151,7 +151,7 @@ Set up Go module, entry point, config loading, root CLI, and version command.
 
 **Tests:** `tests/config_test.go` — env var loading, missing MB_HOST error, missing MB_API_KEY error
 
-**Verification:** `make build && ./bin/mb version`
+**Verification:** `make build && ./bin/mb-cli version`
 
 ---
 
@@ -222,16 +222,16 @@ Implement all database exploration commands.
   - `ListDatabaseSchemas(id int) ([]string, error)` — `GET /api/database/{id}/schemas`
   - `GetDatabaseSchema(id int, schema string) ([]Table, error)` — `GET /api/database/{id}/schema/{schema}`
 - `internal/cli/database.go` — Cobra subcommands:
-  - `mb database list` — list databases (id, name, engine)
-  - `mb database get <id>` — database details
-  - `mb database metadata <id>` — full metadata with tables + fields
-  - `mb database fields <id>` — all fields
-  - `mb database schemas <id>` — list schema names
-  - `mb database schema <id> <schema>` — tables in schema
+  - `mb-cli database list` — list databases (id, name, engine)
+  - `mb-cli database get <id>` — database details
+  - `mb-cli database metadata <id>` — full metadata with tables + fields
+  - `mb-cli database fields <id>` — all fields
+  - `mb-cli database schemas <id>` — list schema names
+  - `mb-cli database schema <id> <schema>` — tables in schema
 
 **Tests:** `tests/databases_test.go` — mock responses for each endpoint, verify struct parsing
 
-**Verification:** `make test && make build && ./bin/mb database list`
+**Verification:** `make test && make build && ./bin/mb-cli database list`
 
 ---
 
@@ -247,15 +247,15 @@ Implement table exploration commands.
   - `GetTableFKs(id int) ([]ForeignKey, error)` — `GET /api/table/{id}/fks`
   - `GetTableData(id int) (*QueryResult, error)` — `GET /api/table/{table-id}/data`
 - `internal/cli/table.go` — Cobra subcommands:
-  - `mb table list` — list all tables
-  - `mb table get <id>` — table details
-  - `mb table metadata <id>` — table metadata with field details
-  - `mb table fks <id>` — foreign key relationships
-  - `mb table data <id>` — raw table data (uses query result formatter)
+  - `mb-cli table list` — list all tables
+  - `mb-cli table get <id>` — table details
+  - `mb-cli table metadata <id>` — table metadata with field details
+  - `mb-cli table fks <id>` — foreign key relationships
+  - `mb-cli table data <id>` — raw table data (uses query result formatter)
 
 **Tests:** `tests/tables_test.go` — mock responses, verify parsing, table data formatting
 
-**Verification:** `make test && ./bin/mb table list && ./bin/mb table data <id>`
+**Verification:** `make test && ./bin/mb-cli table list && ./bin/mb-cli table data <id>`
 
 ---
 
@@ -269,13 +269,13 @@ Implement field inspection commands.
   - `GetFieldSummary(id int) ([]FieldSummary, error)` — `GET /api/field/{id}/summary`
   - `GetFieldValues(id int) (*FieldValues, error)` — `GET /api/field/{id}/values`
 - `internal/cli/field.go` — Cobra subcommands:
-  - `mb field get <id>` — field details (type, base_type, semantic_type)
-  - `mb field summary <id>` — summary stats (count, distinct, min, max)
-  - `mb field values <id>` — distinct values
+  - `mb-cli field get <id>` — field details (type, base_type, semantic_type)
+  - `mb-cli field summary <id>` — summary stats (count, distinct, min, max)
+  - `mb-cli field values <id>` — distinct values
 
 **Tests:** `tests/fields_test.go` — mock responses, verify parsing
 
-**Verification:** `make test && ./bin/mb field get <id>`
+**Verification:** `make test && ./bin/mb-cli field get <id>`
 
 ---
 
@@ -292,7 +292,7 @@ Implement native SQL query execution with database name resolution.
     ```
   - `ExportNativeQuery(databaseID int, sql string, format string) ([]byte, error)` — `POST /api/dataset/{format}`
 - `internal/cli/query.go` — Cobra commands:
-  - `mb query sql --db <id-or-name> --sql "SELECT ..."` — run native SQL
+  - `mb-cli query sql --db <id-or-name> --sql "SELECT ..."` — run native SQL
   - `--db` flag: accepts numeric ID or name substring
   - `--export` flag: optional export format (csv, json, xlsx)
   - `--limit` flag: append LIMIT to SQL if provided
@@ -309,7 +309,7 @@ Implement native SQL query execution with database name resolution.
 - Database name resolution: exact match, substring, no match, ambiguous match
 - Export format request
 
-**Verification:** `make test && ./bin/mb query sql --db prod --sql "SELECT 1"`
+**Verification:** `make test && ./bin/mb-cli query sql --db prod --sql "SELECT 1"`
 
 ---
 
@@ -324,15 +324,15 @@ Implement listing and running saved questions.
   - `RunCard(id int) (*QueryResult, error)` — `POST /api/card/{card-id}/query`
 - `internal/client/types.go` — add `Card` struct (id, name, description, database_id, display, query_type, etc.)
 - `internal/cli/card.go` — Cobra subcommands:
-  - `mb card list` — list saved questions (id, name, database, display type)
-  - `mb card get <id>` — card details
-  - `mb card run <id>` — execute saved question and show results
+  - `mb-cli card list` — list saved questions (id, name, database, display type)
+  - `mb-cli card get <id>` — card details
+  - `mb-cli card run <id>` — execute saved question and show results
 
 **Note:** `POST /api/card/{id}/query` is read-only — it runs the saved question without modifying anything.
 
 **Tests:** `tests/cards_test.go` — mock list/get/run responses, verify request headers
 
-**Verification:** `make test && ./bin/mb card list && ./bin/mb card run <id>`
+**Verification:** `make test && ./bin/mb-cli card list && ./bin/mb-cli card run <id>`
 
 ---
 
@@ -345,13 +345,13 @@ Implement cross-entity search.
   - `Search(query string, models []string) ([]SearchResult, error)` — `GET /api/search/?q=<query>&models=<models>`
 - `internal/client/types.go` — add `SearchResult` struct
 - `internal/cli/search.go` — Cobra command:
-  - `mb search <query> [--models table,card,database]` — search Metabase items
+  - `mb-cli search <query> [--models table,card,database]` — search Metabase items
   - Default: search all models
   - `--models` flag: filter by type (table, card, database, dashboard, collection, metric)
 
 **Tests:** `tests/search_test.go` — mock search responses with various model types
 
-**Verification:** `make test && ./bin/mb search "users"`
+**Verification:** `make test && ./bin/mb-cli search "users"`
 
 ---
 
@@ -422,7 +422,7 @@ Configure multi-platform release builds and homebrew tap.
 
 Make the CLI optimised for AI agent consumption, following the best practices from [Rewrite your CLI for AI Agents](https://justin.poehnelt.com/posts/rewrite-your-cli-for-ai-agents/) and mirroring what was done in [logbasset PR #33](https://github.com/andreagrandi/logbasset/pull/33).
 
-#### 13a. `mb context` command — embedded agent reference document
+#### 13a. `mb-cli context` command — embedded agent reference document
 
 **Files to create:**
 - `internal/cli/context.go` — Cobra command that prints an embedded markdown document (pattern from logbasset `internal/cli/context.go`)
@@ -441,12 +441,12 @@ Make the CLI optimised for AI agent consumption, following the best practices fr
 
 **Tests:** `tests/context_test.go` — verify command runs, output contains key sections
 
-#### 13b. `mb schema [command]` — JSON schema introspection
+#### 13b. `mb-cli schema [command]` — JSON schema introspection
 
 **Files to create:**
 - `internal/cli/schema.go` — Cobra command (pattern from logbasset `internal/cli/schema.go`)
-  - `mb schema` — lists all commands with descriptions as JSON array
-  - `mb schema <command>` — prints JSON schema for that command's args, flags (name, type, required, default, enum, description), and output keys
+  - `mb-cli schema` — lists all commands with descriptions as JSON array
+  - `mb-cli schema <command>` — prints JSON schema for that command's args, flags (name, type, required, default, enum, description), and output keys
   - `--pretty` flag for indented output
 
 **Schema types:**
@@ -519,7 +519,7 @@ type commandSchema struct {
 
 #### 13f. `--fields` flag for JSON field masking on query results
 
-**Behaviour:** Add `--fields` flag to `mb query sql` and `mb card run` commands. When set (e.g. `--fields id,name,email`), the JSON output includes only those columns from the result set. This reduces output size for agent context windows.
+**Behaviour:** Add `--fields` flag to `mb-cli query sql` and `mb-cli card run` commands. When set (e.g. `--fields id,name,email`), the JSON output includes only those columns from the result set. This reduces output size for agent context windows.
 
 **Files to modify:**
 - `internal/cli/query.go` — add `--fields` flag
@@ -547,26 +547,26 @@ tests/fields_filter_test.go
 
 **New commands added:**
 ```
-mb context                         # Print agent context document
-mb schema                          # List all commands as JSON
-mb schema <command>                # JSON schema for command inputs
+mb-cli context                         # Print agent context document
+mb-cli schema                          # List all commands as JSON
+mb-cli schema <command>                # JSON schema for command inputs
 ```
 
 **Verification:**
-- `mb context | head` — prints agent reference
-- `mb schema | jq .` — valid JSON, lists all commands
-- `mb schema "query sql" | jq .` — shows args/flags/defaults
-- `echo '{}' | mb database list` — JSON output (non-TTY detected)
-- `mb database list` — table output in terminal (TTY detected)
-- `MB_API_KEY="" mb database list --error-format json 2>&1` — structured JSON error on stderr
-- `mb query sql --db prod --sql $'\x01SELECT 1'` — rejected with validation error
-- `mb query sql --db prod --sql "SELECT id, name FROM users" --format json --fields id,name` — only id,name in output
+- `mb-cli context | head` — prints agent reference
+- `mb-cli schema | jq .` — valid JSON, lists all commands
+- `mb-cli schema "query sql" | jq .` — shows args/flags/defaults
+- `echo '{}' | mb-cli database list` — JSON output (non-TTY detected)
+- `mb-cli database list` — table output in terminal (TTY detected)
+- `MB_API_KEY="" mb-cli database list --error-format json 2>&1` — structured JSON error on stderr
+- `mb-cli query sql --db prod --sql $'\x01SELECT 1'` — rejected with validation error
+- `mb-cli query sql --db prod --sql "SELECT id, name FROM users" --format json --fields id,name` — only id,name in output
 
 ---
 
 ## Development Note
 
-`MB_HOST` and `MB_API_KEY` are available in the project `.envrc` (loaded by direnv). After each step, **always smoke-test against the real Metabase API** as soon as there is something runnable — don't wait until all steps are done. For example, after Step 4 (database commands), run `make build && ./bin/mb database list` to confirm the API integration works end-to-end, not just the unit tests.
+`MB_HOST` and `MB_API_KEY` are available in the project `.envrc` (loaded by direnv). After each step, **always smoke-test against the real Metabase API** as soon as there is something runnable — don't wait until all steps are done. For example, after Step 4 (database commands), run `make build && ./bin/mb-cli database list` to confirm the API integration works end-to-end, not just the unit tests.
 
 ---
 
@@ -593,38 +593,38 @@ git push origin v0.1.0
 ## Command Summary
 
 ```
-mb database list                              # List all databases
-mb database get <id>                          # Get database details
-mb database metadata <id>                     # Full metadata (tables + fields)
-mb database fields <id>                       # List all fields
-mb database schemas <id>                      # List schema names
-mb database schema <id> <schema>              # Tables in a schema
+mb-cli database list                              # List all databases
+mb-cli database get <id>                          # Get database details
+mb-cli database metadata <id>                     # Full metadata (tables + fields)
+mb-cli database fields <id>                       # List all fields
+mb-cli database schemas <id>                      # List schema names
+mb-cli database schema <id> <schema>              # Tables in a schema
 
-mb table list                                 # List all tables
-mb table get <id>                             # Get table details
-mb table metadata <id>                        # Table metadata with fields
-mb table fks <id>                             # Foreign key relationships
-mb table data <id>                            # Raw table data
+mb-cli table list                                 # List all tables
+mb-cli table get <id>                             # Get table details
+mb-cli table metadata <id>                        # Table metadata with fields
+mb-cli table fks <id>                             # Foreign key relationships
+mb-cli table data <id>                            # Raw table data
 
-mb field get <id>                             # Field details
-mb field summary <id>                         # Summary statistics
-mb field values <id>                          # Distinct values
+mb-cli field get <id>                             # Field details
+mb-cli field summary <id>                         # Summary statistics
+mb-cli field values <id>                          # Distinct values
 
-mb query sql --db <id-or-name> --sql "..."    # Run SQL query
-mb query sql --db prod --sql "..." --export csv  # Export results
+mb-cli query sql --db <id-or-name> --sql "..."    # Run SQL query
+mb-cli query sql --db prod --sql "..." --export csv  # Export results
 
-mb card list                                  # List saved questions
-mb card get <id>                              # Card details
-mb card run <id>                              # Execute saved question
+mb-cli card list                                  # List saved questions
+mb-cli card get <id>                              # Card details
+mb-cli card run <id>                              # Execute saved question
 
-mb search <query>                             # Search Metabase items
-mb search <query> --models table,card         # Search specific types
+mb-cli search <query>                             # Search Metabase items
+mb-cli search <query> --models table,card         # Search specific types
 
-mb context                                    # Print agent reference document
-mb schema                                     # List all commands as JSON
-mb schema <command>                           # JSON schema for command inputs
+mb-cli context                                    # Print agent reference document
+mb-cli schema                                     # List all commands as JSON
+mb-cli schema <command>                           # JSON schema for command inputs
 
-mb version                                    # Show version
+mb-cli version                                    # Show version
 
 # Global flags (all commands):
 --format json|table    (default: json when piped, table in TTY)
