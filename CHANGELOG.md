@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-03-05
+
 - Database commands: list, get, metadata, fields, schemas, schema
 - Table commands: list, get, metadata, fks, data
 - Field commands: get, summary, values
