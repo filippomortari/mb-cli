@@ -1,2 +1,3 @@
 # mb-cli
-CLI client for MetaBase
+
+A read-only CLI for the Metabase API.
