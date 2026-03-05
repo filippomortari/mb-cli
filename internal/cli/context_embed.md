@@ -1,0 +1,130 @@
+# mb-cli - Agent Context
+
+mb-cli is a **read-only** CLI for querying Metabase databases. All commands are read-only; nothing is mutated.
+
+## Authentication
+
+Set both environment variables (required):
+- `MB_HOST` - Metabase instance URL (e.g. `https://your-metabase-instance.com`)
+- `MB_API_KEY` - Metabase API key
+
+## Commands
+
+| Command | Description | Required args | Required flags |
+|---------|-------------|---------------|----------------|
+| `database list` | List all databases | none | none |
+| `database get <id>` | Get database details | id (positional) | none |
+| `database metadata <id>` | Full metadata (tables + fields) | id (positional) | none |
+| `database fields <id>` | List all fields in database | id (positional) | none |
+| `database schemas <id>` | List schema names | id (positional) | none |
+| `database schema <id> <schema>` | Tables in a specific schema | id, schema (positional) | none |
+| `table list` | List all tables | none | none |
+| `table get <id>` | Get table details | id (positional) | none |
+| `table metadata <id>` | Table metadata with fields | id (positional) | none |
+| `table fks <id>` | Foreign key relationships | id (positional) | none |
+| `table data <id>` | Get raw table data | id (positional) | none |
+| `field get <id>` | Get field details | id (positional) | none |
+| `field summary <id>` | Summary statistics for a field | id (positional) | none |
+| `field values <id>` | Distinct values for a field | id (positional) | none |
+| `query sql` | Run a native SQL query | none | `--db`, `--sql` |
+| `card list` | List saved questions | none | none |
+| `card get <id>` | Get card details | id (positional) | none |
+| `card run <id>` | Execute a saved question | id (positional) | none |
+| `search <query>` | Search across Metabase items | query (positional) | none |
+| `context` | Print this agent context document | none | none |
+| `version` | Print version | none | none |
+
+## Global Flags
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--format`, `-f` | string | `json` | Output format: `json` or `table` |
+| `--verbose`, `-v` | bool | false | Show request details on stderr |
+
+## Command-Specific Flags
+
+### `query sql`
+| Flag | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `--db` | string | yes | | Database ID or name substring |
+| `--sql` | string | yes | | SQL query to execute |
+| `--export` | string | no | | Export format: `csv`, `json`, `xlsx` |
+| `--limit` | int | no | 0 | Append LIMIT to SQL query |
+
+### `search`
+| Flag | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `--models` | string | no | | Filter by type (comma-separated: `table,card,database,dashboard,collection,metric`) |
+
+## Flags That Do NOT Exist
+
+Agents commonly hallucinate these flags. They will cause errors:
+- `--host` - does not exist; set `MB_HOST` env var instead
+- `--token` / `--api-key` - does not exist; set `MB_API_KEY` env var instead
+- `--database` (global) - does not exist; use `--db` on `query sql`
+- `--output` - does not exist; use `--format` instead
+- `--query` - does not exist; use `--sql` on `query sql`
+- `--table` (global) - does not exist; table ID is a positional arg
+
+## Database Name Resolution
+
+The `--db` flag on `query sql` accepts either:
+- A numeric database ID (e.g. `--db 1`) - used directly
+- A name substring (e.g. `--db prod`) - case-insensitive substring match
+
+Resolution errors:
+- Zero matches: `no database matching 'name' found`
+- Multiple matches: `ambiguous database name 'name', matches: [list]. Use database ID instead`
+
+## Aliases
+
+- `database` can also be written as `db` (e.g. `mb-cli db list`)
+
+## Output Formats
+
+- `json` (default): Pretty-printed JSON
+- `table`: Human-readable tabular output using aligned columns
+
+Query result commands (`query sql`, `card run`, `table data`) format output as column/row tables in both formats.
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | General error (config, API, parse) |
+
+## Examples
+
+```bash
+# List all databases
+mb-cli database list
+
+# Get full metadata for database 1 (tables and fields)
+mb-cli database metadata 1
+
+# List tables in the "public" schema of database 1
+mb-cli database schema 1 public
+
+# Find a table by searching
+mb-cli search "users" --models table
+
+# Get table metadata including field details
+mb-cli table metadata 42
+
+# Run a SQL query against a database by name
+mb-cli query sql --db prod --sql "SELECT id, name FROM users LIMIT 10"
+
+# Run a SQL query with limit flag
+mb-cli query sql --db 1 --sql "SELECT * FROM orders" --limit 50
+
+# Export query results as CSV
+mb-cli query sql --db prod --sql "SELECT * FROM users" --export csv
+
+# List saved questions and run one
+mb-cli card list
+mb-cli card run 5
+
+# Get table output for terminal reading
+mb-cli database list --format table
+```
