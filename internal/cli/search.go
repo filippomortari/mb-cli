@@ -3,6 +3,7 @@ package cli
 import (
 	"github.com/andreagrandi/mb-cli/internal/client"
 	"github.com/andreagrandi/mb-cli/internal/formatter"
+	"github.com/andreagrandi/mb-cli/internal/validation"
 	"github.com/spf13/cobra"
 )
 
@@ -22,6 +23,10 @@ func init() {
 func runSearch(cmd *cobra.Command, args []string) error {
 	c, err := newClient(cmd)
 	if err != nil {
+		return err
+	}
+
+	if err := validation.ValidateSearchQuery(args[0]); err != nil {
 		return err
 	}
 

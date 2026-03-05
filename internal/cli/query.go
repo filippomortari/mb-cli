@@ -8,6 +8,7 @@ import (
 
 	"github.com/andreagrandi/mb-cli/internal/client"
 	"github.com/andreagrandi/mb-cli/internal/formatter"
+	"github.com/andreagrandi/mb-cli/internal/validation"
 	"github.com/spf13/cobra"
 )
 
@@ -45,6 +46,10 @@ func runQuerySQL(cmd *cobra.Command, args []string) error {
 	sql, _ := cmd.Flags().GetString("sql")
 	export, _ := cmd.Flags().GetString("export")
 	limit, _ := cmd.Flags().GetInt("limit")
+
+	if err := validation.ValidateSQL(sql); err != nil {
+		return err
+	}
 
 	dbID, err := resolveDatabaseID(c, dbFlag)
 	if err != nil {
