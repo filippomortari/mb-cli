@@ -9,7 +9,8 @@ A read-only CLI for the Metabase API. Designed for terminal users and AI coding 
 ### Homebrew
 
 ```bash
-brew install andreagrandi/tap/mb-cli
+brew tap andreagrandi/tap
+brew install mb-cli
 ```
 
 ### Binary download
