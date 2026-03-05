@@ -86,3 +86,15 @@ type ResultColumn struct {
 	DisplayName string `json:"display_name"`
 	BaseType    string `json:"base_type"`
 }
+
+// FieldSummary represents summary statistics for a field.
+type FieldSummary struct {
+	Type  string `json:"type"`
+	Value any    `json:"value"`
+}
+
+// FieldValues represents distinct values for a field.
+type FieldValues struct {
+	FieldID int      `json:"field_id"`
+	Values  [][]any  `json:"values"`
+}
