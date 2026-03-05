@@ -82,9 +82,10 @@ type QueryResultData struct {
 
 // ResultColumn describes a column in a query result.
 type ResultColumn struct {
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-	BaseType    string `json:"base_type"`
+	Name         string `json:"name"`
+	DisplayName  string `json:"display_name"`
+	BaseType     string `json:"base_type"`
+	SemanticType string `json:"semantic_type,omitempty"`
 }
 
 // DatasetQuery represents a query request to the Metabase dataset API.

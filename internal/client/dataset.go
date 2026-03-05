@@ -23,11 +23,20 @@ func (c *Client) RunNativeQuery(databaseID int, sql string) (*QueryResult, error
 		return nil, err
 	}
 
+	if c.RedactPII {
+		c.EnrichSemanticTypes(&result, databaseID)
+		RedactQueryResult(&result)
+	}
+
 	return &result, nil
 }
 
 // ExportNativeQuery executes a native SQL query and returns the result in the specified export format.
 func (c *Client) ExportNativeQuery(databaseID int, sql string, format string) ([]byte, error) {
+	if c.RedactPII {
+		return nil, fmt.Errorf("export is not supported when PII redaction is enabled (use JSON or table format instead)")
+	}
+
 	query := DatasetQuery{
 		Database: databaseID,
 		Type:     "native",
@@ -73,11 +82,19 @@ func (c *Client) RunStructuredQuery(databaseID, tableID int, filters [][]any, li
 		return nil, err
 	}
 
+	if c.RedactPII {
+		RedactQueryResult(&result)
+	}
+
 	return &result, nil
 }
 
 // ExportStructuredQuery executes an MBQL structured query and returns the result in the specified export format.
 func (c *Client) ExportStructuredQuery(databaseID, tableID int, filters [][]any, limit int, format string) ([]byte, error) {
+	if c.RedactPII {
+		return nil, fmt.Errorf("export is not supported when PII redaction is enabled (use JSON or table format instead)")
+	}
+
 	sq := &StructuredQuery{
 		SourceTable: tableID,
 	}

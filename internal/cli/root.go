@@ -47,6 +47,7 @@ func init() {
 	rootCmd.PersistentFlags().StringP("format", "f", "json", "Output format: json, table")
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Show request details on stderr")
 	rootCmd.PersistentFlags().String("error-format", "text", "Error output format: text, json")
+	rootCmd.PersistentFlags().Bool("redact-pii", true, "Redact PII values in query results (disable with --redact-pii=false)")
 }
 
 type jsonError struct {

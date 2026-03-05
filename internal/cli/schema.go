@@ -187,7 +187,9 @@ var schemas = map[string]commandSchema{
 		Args: []paramSchema{
 			{Name: "id", Type: "integer", Required: true, Description: "Table ID"},
 		},
-		Flags: []paramSchema{},
+		Flags: []paramSchema{
+			{Name: "redact-pii", Type: "boolean", Required: false, Default: true, Description: "Redact PII values in query results"},
+		},
 	},
 	"field get": {
 		Command: "field get",
@@ -209,16 +211,19 @@ var schemas = map[string]commandSchema{
 		Args: []paramSchema{
 			{Name: "id", Type: "integer", Required: true, Description: "Field ID"},
 		},
-		Flags: []paramSchema{},
+		Flags: []paramSchema{
+			{Name: "redact-pii", Type: "boolean", Required: false, Default: true, Description: "Redact PII values if field has PII semantic type"},
+		},
 	},
 	"query sql": {
 		Command: "query sql",
 		Flags: []paramSchema{
 			{Name: "db", Type: "string", Required: true, Description: "Database ID or name substring"},
 			{Name: "sql", Type: "string", Required: true, Description: "SQL query to execute"},
-			{Name: "export", Type: "string", Required: false, Enum: []string{"csv", "json", "xlsx"}, Description: "Export format"},
+			{Name: "export", Type: "string", Required: false, Enum: []string{"csv", "json", "xlsx"}, Description: "Export format (blocked when PII redaction is enabled)"},
 			{Name: "limit", Type: "integer", Required: false, Default: 0, Description: "Append LIMIT to SQL query"},
 			{Name: "fields", Type: "string", Required: false, Description: "Comma-separated columns to include in output"},
+			{Name: "redact-pii", Type: "boolean", Required: false, Default: true, Description: "Redact PII values in query results"},
 		},
 	},
 	"query filter": {
@@ -228,8 +233,9 @@ var schemas = map[string]commandSchema{
 			{Name: "table", Type: "string", Required: true, Description: "Table ID or name substring"},
 			{Name: "where", Type: "string[]", Required: true, Description: "Filter in field=value format (repeatable)"},
 			{Name: "limit", Type: "integer", Required: false, Default: 0, Description: "Maximum number of rows to return"},
-			{Name: "export", Type: "string", Required: false, Enum: []string{"csv", "json", "xlsx"}, Description: "Export format"},
+			{Name: "export", Type: "string", Required: false, Enum: []string{"csv", "json", "xlsx"}, Description: "Export format (blocked when PII redaction is enabled)"},
 			{Name: "fields", Type: "string", Required: false, Description: "Comma-separated columns to include in output"},
+			{Name: "redact-pii", Type: "boolean", Required: false, Default: true, Description: "Redact PII values in query results"},
 		},
 	},
 	"card list": {
@@ -251,6 +257,7 @@ var schemas = map[string]commandSchema{
 		},
 		Flags: []paramSchema{
 			{Name: "fields", Type: "string", Required: false, Description: "Comma-separated columns to include in output"},
+			{Name: "redact-pii", Type: "boolean", Required: false, Default: true, Description: "Redact PII values in query results"},
 		},
 	},
 	"search": {

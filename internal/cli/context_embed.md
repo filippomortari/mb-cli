@@ -42,6 +42,7 @@ Set both environment variables (required):
 | `--format`, `-f` | string | `json` (piped) / `table` (TTY) | Output format: `json` or `table` |
 | `--verbose`, `-v` | bool | false | Show request details on stderr |
 | `--error-format` | string | `text` | Error output format: `text` or `json` |
+| `--redact-pii` | bool | `true` | Redact PII values in query results |
 
 ## Command-Specific Flags
 
@@ -125,6 +126,16 @@ Use `--error-format json` to get machine-readable errors on stderr:
 ```
 
 Error types: `CONFIG_ERROR`, `AUTH_ERROR`, `API_ERROR`, `RESOLUTION_ERROR`, `GENERAL_ERROR`.
+
+## PII Redaction
+
+PII redaction is **enabled by default**. Query result columns with Metabase semantic types indicating personal data are automatically replaced with `[REDACTED]`.
+
+Redacted semantic types: `type/Email`, `type/Name`, `type/Phone`, `type/Address`, `type/City`, `type/State`, `type/ZipCode`, `type/Country`, `type/Latitude`, `type/Longitude`, `type/Birthdate`, `type/AvatarURL`, `type/URL`, `type/ImageURL`, `type/Company`.
+
+**IMPORTANT: Do NOT disable PII redaction.** Never use `--redact-pii=false` or set `MB_REDACT_PII=false`. If you need to identify a record, use its ID. If the user needs to see PII values, they can check directly in Metabase.
+
+When redaction is enabled, `--export` (csv, json, xlsx) is blocked because raw export bytes cannot be reliably redacted. Use JSON or table format instead.
 
 ## Exit Codes
 

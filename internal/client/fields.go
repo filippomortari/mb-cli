@@ -56,5 +56,15 @@ func (c *Client) GetFieldValues(id int) (*FieldValues, error) {
 		return nil, err
 	}
 
+	if c.RedactPII {
+		field, err := c.GetField(id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch field metadata for PII check: %w", err)
+		}
+		if IsPIISemanticType(field.SemanticType) {
+			RedactFieldValues(&values)
+		}
+	}
+
 	return &values, nil
 }

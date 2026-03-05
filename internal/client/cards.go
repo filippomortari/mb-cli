@@ -44,5 +44,9 @@ func (c *Client) RunCard(id int) (*QueryResult, error) {
 		return nil, err
 	}
 
+	if c.RedactPII {
+		RedactQueryResult(&result)
+	}
+
 	return &result, nil
 }

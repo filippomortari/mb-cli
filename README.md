@@ -34,6 +34,12 @@ export MB_API_KEY=your-api-key
 
 Both are required. `MB_HOST` is the base URL of your Metabase instance. `MB_API_KEY` is a [Metabase API key](https://www.metabase.com/docs/latest/people-and-groups/api-keys).
 
+Optional:
+
+```bash
+export MB_REDACT_PII=false  # Disable PII redaction (enabled by default)
+```
+
 ## Usage
 
 ### Global flags
@@ -42,6 +48,7 @@ Both are required. `MB_HOST` is the base URL of your Metabase instance. `MB_API_
 |------|-------------|---------|
 | `--format`, `-f` | Output format: `json`, `table` | `json` |
 | `--verbose`, `-v` | Show request details on stderr | `false` |
+| `--redact-pii` | Redact PII values in query results | `true` |
 
 ### Database commands
 
@@ -169,6 +176,12 @@ mb-cli table metadata 42
 # 4. Query data
 mb-cli query sql --db 1 --sql "SELECT id, email FROM users WHERE created_at > '2024-01-01' LIMIT 10"
 ```
+
+## PII Redaction
+
+When AI agents use mb-cli directly (via shell commands), query results containing PII (emails, names, phone numbers) flow through stdout into the model's context. This feature prevents agents from seeing sensitive data by redacting PII columns before data leaves the client layer. Agents can still cross-reference records using IDs; for actual PII values, the user can check directly in Metabase.
+
+The approach leverages Metabase's own field semantic types (type/Email, type/Name, etc.). Redaction is ON by default — no configuration needed. Users must explicitly opt out with `MB_REDACT_PII=false` or `--redact-pii=false`. This is defense-in-depth: it makes the default path safe. An agent would have to actively choose to bypass it (a visible, auditable action).
 
 ## License
 

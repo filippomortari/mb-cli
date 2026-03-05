@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+- PII redaction enabled by default: query result columns with Metabase PII semantic types (Email, Name, Phone, etc.) are replaced with `[REDACTED]`
+- Add `--redact-pii` global flag and `MB_REDACT_PII` environment variable
+- Block `--export` when PII redaction is enabled
+- Update agent context document with PII redaction directive
+
 ## [0.1.2] - 2026-03-05
 
 - Add `query filter` command for structured MBQL queries with `--where` field filters

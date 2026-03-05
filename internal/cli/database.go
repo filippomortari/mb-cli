@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/andreagrandi/mb-cli/internal/client"
@@ -77,6 +79,18 @@ func newClient(cmd *cobra.Command) (*client.Client, error) {
 	c := client.NewClient(cfg)
 	verbose, _ := cmd.Flags().GetBool("verbose")
 	c.Verbose = verbose
+
+	redactPII := true
+	if cmd.Flags().Changed("redact-pii") {
+		redactPII, _ = cmd.Flags().GetBool("redact-pii")
+	} else if v, ok := os.LookupEnv("MB_REDACT_PII"); ok {
+		redactPII = v != "false"
+	}
+	c.RedactPII = redactPII
+
+	if !redactPII {
+		fmt.Fprintln(os.Stderr, "Warning: PII redaction is disabled")
+	}
 
 	return c, nil
 }

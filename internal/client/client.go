@@ -27,6 +27,7 @@ type Client struct {
 	HTTPClient HTTPDoer
 	APIKey     string
 	Verbose    bool
+	RedactPII  bool
 }
 
 // NewClient creates a new Metabase API client from the provided config.

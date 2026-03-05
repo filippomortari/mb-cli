@@ -76,5 +76,9 @@ func (c *Client) GetTableData(id int) (*QueryResult, error) {
 		return nil, err
 	}
 
+	if c.RedactPII {
+		RedactQueryResult(&result)
+	}
+
 	return &result, nil
 }
