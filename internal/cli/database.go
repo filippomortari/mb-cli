@@ -1,0 +1,192 @@
+package cli
+
+import (
+	"strconv"
+
+	"github.com/andreagrandi/mb-cli/internal/client"
+	"github.com/andreagrandi/mb-cli/internal/config"
+	"github.com/andreagrandi/mb-cli/internal/formatter"
+	"github.com/spf13/cobra"
+)
+
+var databaseCmd = &cobra.Command{
+	Use:     "database",
+	Aliases: []string{"db"},
+	Short:   "Database exploration commands",
+}
+
+var databaseListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List all databases",
+	Args:  cobra.NoArgs,
+	RunE:  runDatabaseList,
+}
+
+var databaseGetCmd = &cobra.Command{
+	Use:   "get <id>",
+	Short: "Get database details",
+	Args:  cobra.ExactArgs(1),
+	RunE:  runDatabaseGet,
+}
+
+var databaseMetadataCmd = &cobra.Command{
+	Use:   "metadata <id>",
+	Short: "Full metadata (tables + fields)",
+	Args:  cobra.ExactArgs(1),
+	RunE:  runDatabaseMetadata,
+}
+
+var databaseFieldsCmd = &cobra.Command{
+	Use:   "fields <id>",
+	Short: "List all fields in database",
+	Args:  cobra.ExactArgs(1),
+	RunE:  runDatabaseFields,
+}
+
+var databaseSchemasCmd = &cobra.Command{
+	Use:   "schemas <id>",
+	Short: "List schema names",
+	Args:  cobra.ExactArgs(1),
+	RunE:  runDatabaseSchemas,
+}
+
+var databaseSchemaCmd = &cobra.Command{
+	Use:   "schema <id> <schema>",
+	Short: "Tables in a specific schema",
+	Args:  cobra.ExactArgs(2),
+	RunE:  runDatabaseSchema,
+}
+
+func init() {
+	rootCmd.AddCommand(databaseCmd)
+
+	databaseCmd.AddCommand(databaseListCmd)
+	databaseCmd.AddCommand(databaseGetCmd)
+	databaseCmd.AddCommand(databaseMetadataCmd)
+	databaseCmd.AddCommand(databaseFieldsCmd)
+	databaseCmd.AddCommand(databaseSchemasCmd)
+	databaseCmd.AddCommand(databaseSchemaCmd)
+}
+
+func newClient(cmd *cobra.Command) (*client.Client, error) {
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	c := client.NewClient(cfg)
+	verbose, _ := cmd.Flags().GetBool("verbose")
+	c.Verbose = verbose
+
+	return c, nil
+}
+
+func runDatabaseList(cmd *cobra.Command, args []string) error {
+	c, err := newClient(cmd)
+	if err != nil {
+		return err
+	}
+
+	databases, err := c.ListDatabases(false)
+	if err != nil {
+		return err
+	}
+
+	return formatter.Output(cmd, databases)
+}
+
+func runDatabaseGet(cmd *cobra.Command, args []string) error {
+	id, err := strconv.Atoi(args[0])
+	if err != nil {
+		return err
+	}
+
+	c, err := newClient(cmd)
+	if err != nil {
+		return err
+	}
+
+	db, err := c.GetDatabase(id)
+	if err != nil {
+		return err
+	}
+
+	return formatter.Output(cmd, db)
+}
+
+func runDatabaseMetadata(cmd *cobra.Command, args []string) error {
+	id, err := strconv.Atoi(args[0])
+	if err != nil {
+		return err
+	}
+
+	c, err := newClient(cmd)
+	if err != nil {
+		return err
+	}
+
+	meta, err := c.GetDatabaseMetadata(id)
+	if err != nil {
+		return err
+	}
+
+	return formatter.Output(cmd, meta)
+}
+
+func runDatabaseFields(cmd *cobra.Command, args []string) error {
+	id, err := strconv.Atoi(args[0])
+	if err != nil {
+		return err
+	}
+
+	c, err := newClient(cmd)
+	if err != nil {
+		return err
+	}
+
+	fields, err := c.GetDatabaseFields(id)
+	if err != nil {
+		return err
+	}
+
+	return formatter.Output(cmd, fields)
+}
+
+func runDatabaseSchemas(cmd *cobra.Command, args []string) error {
+	id, err := strconv.Atoi(args[0])
+	if err != nil {
+		return err
+	}
+
+	c, err := newClient(cmd)
+	if err != nil {
+		return err
+	}
+
+	schemas, err := c.ListDatabaseSchemas(id)
+	if err != nil {
+		return err
+	}
+
+	return formatter.Output(cmd, schemas)
+}
+
+func runDatabaseSchema(cmd *cobra.Command, args []string) error {
+	id, err := strconv.Atoi(args[0])
+	if err != nil {
+		return err
+	}
+	schema := args[1]
+
+	c, err := newClient(cmd)
+	if err != nil {
+		return err
+	}
+
+	tables, err := c.GetDatabaseSchema(id, schema)
+	if err != nil {
+		return err
+	}
+
+	return formatter.Output(cmd, tables)
+}

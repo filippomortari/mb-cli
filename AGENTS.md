@@ -49,6 +49,11 @@ Environment variables (both required):
 - Test files go in the `tests/` directory
 - Use `httptest.NewServer` for HTTP client testing
 
+## Smoke Testing
+
+- After implementing API methods or CLI commands, always smoke test **every** method against the real Metabase API (`make build && ./bin/mb-cli <command>`)
+- Do not consider a step complete until all endpoints have been verified end-to-end, not just unit tested
+
 ## Project Style
 
 - When you generate or update the CHANGELOG.md, be concise
