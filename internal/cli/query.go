@@ -32,6 +32,7 @@ func init() {
 	querySQLCmd.Flags().String("sql", "", "SQL query to execute (required)")
 	querySQLCmd.Flags().String("export", "", "Export format: csv, json, xlsx")
 	querySQLCmd.Flags().Int("limit", 0, "Append LIMIT to SQL query")
+	querySQLCmd.Flags().String("fields", "", "Comma-separated list of columns to include in output")
 	querySQLCmd.MarkFlagRequired("db")
 	querySQLCmd.MarkFlagRequired("sql")
 }
@@ -75,13 +76,15 @@ func runQuerySQL(cmd *cobra.Command, args []string) error {
 	}
 
 	format, _ := cmd.Flags().GetString("format")
+	fields, _ := cmd.Flags().GetString("fields")
 
 	columns := make([]string, len(result.Data.Columns))
 	for i, col := range result.Data.Columns {
 		columns[i] = col.Name
 	}
 
-	return formatter.FormatQueryResults(format, columns, result.Data.Rows, os.Stdout)
+	columns, rows := formatter.FilterColumns(columns, result.Data.Rows, fields)
+	return formatter.FormatQueryResults(format, columns, rows, os.Stdout)
 }
 
 func resolveDatabaseID(c *client.Client, dbFlag string) (int, error) {

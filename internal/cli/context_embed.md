@@ -51,6 +51,12 @@ Set both environment variables (required):
 | `--sql` | string | yes | | SQL query to execute |
 | `--export` | string | no | | Export format: `csv`, `json`, `xlsx` |
 | `--limit` | int | no | 0 | Append LIMIT to SQL query |
+| `--fields` | string | no | | Comma-separated columns to include in output |
+
+### `card run`
+| Flag | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `--fields` | string | no | | Comma-separated columns to include in output |
 
 ### `search`
 | Flag | Type | Required | Default | Description |

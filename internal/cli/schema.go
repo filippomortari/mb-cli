@@ -217,6 +217,7 @@ var schemas = map[string]commandSchema{
 			{Name: "sql", Type: "string", Required: true, Description: "SQL query to execute"},
 			{Name: "export", Type: "string", Required: false, Enum: []string{"csv", "json", "xlsx"}, Description: "Export format"},
 			{Name: "limit", Type: "integer", Required: false, Default: 0, Description: "Append LIMIT to SQL query"},
+			{Name: "fields", Type: "string", Required: false, Description: "Comma-separated columns to include in output"},
 		},
 	},
 	"card list": {
@@ -236,7 +237,9 @@ var schemas = map[string]commandSchema{
 		Args: []paramSchema{
 			{Name: "id", Type: "integer", Required: true, Description: "Card ID"},
 		},
-		Flags: []paramSchema{},
+		Flags: []paramSchema{
+			{Name: "fields", Type: "string", Required: false, Description: "Comma-separated columns to include in output"},
+		},
 	},
 	"search": {
 		Command: "search",

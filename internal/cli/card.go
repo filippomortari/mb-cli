@@ -40,6 +40,8 @@ func init() {
 	cardCmd.AddCommand(cardListCmd)
 	cardCmd.AddCommand(cardGetCmd)
 	cardCmd.AddCommand(cardRunCmd)
+
+	cardRunCmd.Flags().String("fields", "", "Comma-separated list of columns to include in output")
 }
 
 func runCardList(cmd *cobra.Command, args []string) error {
@@ -92,11 +94,13 @@ func runCardRun(cmd *cobra.Command, args []string) error {
 	}
 
 	format, _ := cmd.Flags().GetString("format")
+	fields, _ := cmd.Flags().GetString("fields")
 
 	columns := make([]string, len(result.Data.Columns))
 	for i, col := range result.Data.Columns {
 		columns[i] = col.Name
 	}
 
-	return formatter.FormatQueryResults(format, columns, result.Data.Rows, os.Stdout)
+	columns, rows := formatter.FilterColumns(columns, result.Data.Rows, fields)
+	return formatter.FormatQueryResults(format, columns, rows, os.Stdout)
 }
