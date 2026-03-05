@@ -130,7 +130,7 @@ mb-cli/
 
 ## Implementation Steps
 
-> **Progress: 10/13 steps completed**
+> **Progress: 12/13 steps completed**
 > ✅ = done, ⬚ = not started
 
 ### Step 1: Project Scaffolding + Config + Version ✅
@@ -378,7 +378,7 @@ Set up CI pipeline, release workflow, and dependabot.
 
 ---
 
-### Step 11: GoReleaser + Homebrew ⬚
+### Step 11: GoReleaser + Homebrew ✅
 
 Configure multi-platform release builds and homebrew tap.
 
@@ -404,7 +404,7 @@ Configure multi-platform release builds and homebrew tap.
 
 ---
 
-### Step 12: Documentation + Final Polish ⬚
+### Step 12: Documentation + Final Polish ✅
 
 - Update `README.md`:
   - Installation: homebrew (`brew install andreagrandi/tap/mb-cli`), binary download, `go install`
