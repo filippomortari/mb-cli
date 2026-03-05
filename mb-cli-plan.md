@@ -130,7 +130,10 @@ mb-cli/
 
 ## Implementation Steps
 
-### Step 1: Project Scaffolding + Config + Version
+> **Progress: 6/13 steps completed**
+> ✅ = done, ⬚ = not started
+
+### Step 1: Project Scaffolding + Config + Version ✅
 
 Set up Go module, entry point, config loading, root CLI, and version command.
 
@@ -152,7 +155,7 @@ Set up Go module, entry point, config loading, root CLI, and version command.
 
 ---
 
-### Step 2: HTTP Client
+### Step 2: HTTP Client ✅
 
 Build the core Metabase API client with API key authentication.
 
@@ -184,7 +187,7 @@ Build the core Metabase API client with API key authentication.
 
 ---
 
-### Step 3: Output Formatters
+### Step 3: Output Formatters ✅
 
 Implement JSON and table output formatters before adding data commands.
 
@@ -205,7 +208,7 @@ Implement JSON and table output formatters before adding data commands.
 
 ---
 
-### Step 4: Database Commands
+### Step 4: Database Commands ✅
 
 Implement all database exploration commands.
 
@@ -232,7 +235,7 @@ Implement all database exploration commands.
 
 ---
 
-### Step 5: Table Commands
+### Step 5: Table Commands ✅
 
 Implement table exploration commands.
 
@@ -256,7 +259,7 @@ Implement table exploration commands.
 
 ---
 
-### Step 6: Field Commands
+### Step 6: Field Commands ✅
 
 Implement field inspection commands.
 
@@ -276,7 +279,7 @@ Implement field inspection commands.
 
 ---
 
-### Step 7: SQL Query Command
+### Step 7: SQL Query Command ⬚
 
 Implement native SQL query execution with database name resolution.
 
@@ -310,7 +313,7 @@ Implement native SQL query execution with database name resolution.
 
 ---
 
-### Step 8: Card (Saved Questions) Commands
+### Step 8: Card (Saved Questions) Commands ⬚
 
 Implement listing and running saved questions.
 
@@ -333,7 +336,7 @@ Implement listing and running saved questions.
 
 ---
 
-### Step 9: Search Command
+### Step 9: Search Command ⬚
 
 Implement cross-entity search.
 
@@ -352,7 +355,7 @@ Implement cross-entity search.
 
 ---
 
-### Step 10: GitHub CI/CD + Dependabot
+### Step 10: GitHub CI/CD + Dependabot ⬚
 
 Set up CI pipeline, release workflow, and dependabot.
 
@@ -375,7 +378,7 @@ Set up CI pipeline, release workflow, and dependabot.
 
 ---
 
-### Step 11: GoReleaser + Homebrew
+### Step 11: GoReleaser + Homebrew ⬚
 
 Configure multi-platform release builds and homebrew tap.
 
@@ -401,7 +404,7 @@ Configure multi-platform release builds and homebrew tap.
 
 ---
 
-### Step 12: Documentation + Final Polish
+### Step 12: Documentation + Final Polish ⬚
 
 - Update `README.md`:
   - Installation: homebrew (`brew install andreagrandi/tap/mb-cli`), binary download, `go install`
@@ -415,7 +418,7 @@ Configure multi-platform release builds and homebrew tap.
 
 ---
 
-### Step 13: Agent-Friendly Enhancements
+### Step 13: Agent-Friendly Enhancements ⬚
 
 Make the CLI optimised for AI agent consumption, following the best practices from [Rewrite your CLI for AI Agents](https://justin.poehnelt.com/posts/rewrite-your-cli-for-ai-agents/) and mirroring what was done in [logbasset PR #33](https://github.com/andreagrandi/logbasset/pull/33).
 
