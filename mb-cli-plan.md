@@ -412,6 +412,7 @@ Configure multi-platform release builds and homebrew tap.
   - Usage examples for every command
   - Agent integration section: how Claude/Codex should use the tool
 - Finalize `AGENTS.md` with all project conventions
+- Add a **Release Process** section to `AGENTS.md` documenting the exact release sequence, modeled on [mcp-wire AGENTS.md](https://github.com/andreagrandi/mcp-wire/blob/master/AGENTS.md#release-process): ensure tests pass, update version in `internal/version/version.go`, update CHANGELOG.md, commit, push, tag, push tag. Note that the tag push triggers `.github/workflows/release.yml` and no manual GitHub release should be created before the workflow runs.
 - Create `CHANGELOG.md` with `[Unreleased]` section
 
 **Verification:** review README, ensure all commands documented with examples
