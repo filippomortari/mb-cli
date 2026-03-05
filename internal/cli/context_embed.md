@@ -40,6 +40,7 @@ Set both environment variables (required):
 |------|------|---------|-------------|
 | `--format`, `-f` | string | `json` (piped) / `table` (TTY) | Output format: `json` or `table` |
 | `--verbose`, `-v` | bool | false | Show request details on stderr |
+| `--error-format` | string | `text` | Error output format: `text` or `json` |
 
 ## Command-Specific Flags
 
@@ -88,6 +89,15 @@ Resolution errors:
 When stdout is not a TTY (piped to another program), the default format is `json`. In a terminal, the default is `table`. An explicit `--format` flag always overrides auto-detection.
 
 Query result commands (`query sql`, `card run`, `table data`) format output as column/row tables in both formats.
+
+## Structured Error Output
+
+Use `--error-format json` to get machine-readable errors on stderr:
+```json
+{"error":{"type":"CONFIG_ERROR","message":"MB_HOST environment variable is required","suggestion":"Set MB_HOST and MB_API_KEY environment variables","exit_code":1}}
+```
+
+Error types: `CONFIG_ERROR`, `AUTH_ERROR`, `API_ERROR`, `RESOLUTION_ERROR`, `GENERAL_ERROR`.
 
 ## Exit Codes
 
