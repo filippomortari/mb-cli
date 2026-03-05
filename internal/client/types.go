@@ -111,6 +111,18 @@ type Card struct {
 	Archived     bool   `json:"archived"`
 }
 
+// SearchResult represents an item returned by the Metabase search API.
+type SearchResult struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	Description  string `json:"description,omitempty"`
+	Model        string `json:"model"`
+	DatabaseID   int    `json:"database_id,omitempty"`
+	TableID      int    `json:"table_id,omitempty"`
+	CollectionID *int   `json:"collection_id,omitempty"`
+	Archived     bool   `json:"archived"`
+}
+
 // FieldSummary represents summary statistics for a field.
 type FieldSummary struct {
 	Type  string `json:"type"`

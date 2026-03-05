@@ -130,7 +130,7 @@ mb-cli/
 
 ## Implementation Steps
 
-> **Progress: 8/13 steps completed**
+> **Progress: 9/13 steps completed**
 > ✅ = done, ⬚ = not started
 
 ### Step 1: Project Scaffolding + Config + Version ✅
@@ -336,7 +336,7 @@ Implement listing and running saved questions.
 
 ---
 
-### Step 9: Search Command ⬚
+### Step 9: Search Command ✅
 
 Implement cross-entity search.
 
