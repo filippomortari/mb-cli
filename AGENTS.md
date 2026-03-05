@@ -59,3 +59,43 @@ Environment variables (both required):
 - When you generate or update the CHANGELOG.md, be concise
 - New additions go in [Unreleased] section
 - Don't bump version unless requested
+
+## Release Process
+
+When asked to create a new release, follow this exact sequence:
+
+1. Ensure tests pass without errors:
+
+```bash
+make test
+```
+
+2. Set the release version in `internal/version/version.go`:
+
+- Use the provided version if one is given.
+- Otherwise bump the patch version (example: `0.1.0` -> `0.1.1`).
+- Update `var Version = "..."` in `internal/version/version.go`.
+
+3. Update `CHANGELOG.md`:
+
+- Add a short bullet-point summary of changes since the last release.
+- Follow the existing changelog format.
+
+4. Commit the release-prep changes.
+5. Push the release-prep commit.
+6. Create the tag using the version from `internal/version/version.go`:
+
+```bash
+git tag v<version>
+```
+
+7. Push the tag:
+
+```bash
+git push origin v<version>
+```
+
+Notes:
+
+- The tag push triggers `.github/workflows/release.yml`.
+- Do not manually create a GitHub release before the workflow runs.
