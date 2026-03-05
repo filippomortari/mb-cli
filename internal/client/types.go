@@ -89,14 +89,22 @@ type ResultColumn struct {
 
 // DatasetQuery represents a query request to the Metabase dataset API.
 type DatasetQuery struct {
-	Database int         `json:"database"`
-	Type     string      `json:"type"`
-	Native   NativeQuery `json:"native"`
+	Database int              `json:"database"`
+	Type     string           `json:"type"`
+	Native   *NativeQuery     `json:"native,omitempty"`
+	Query    *StructuredQuery `json:"query,omitempty"`
 }
 
 // NativeQuery represents the native SQL query part of a dataset query.
 type NativeQuery struct {
 	Query string `json:"query"`
+}
+
+// StructuredQuery represents an MBQL structured query.
+type StructuredQuery struct {
+	SourceTable int   `json:"source-table"`
+	Filter      []any `json:"filter,omitempty"`
+	Limit       int   `json:"limit,omitempty"`
 }
 
 // Card represents a Metabase saved question (card).

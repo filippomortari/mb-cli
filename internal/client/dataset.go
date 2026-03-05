@@ -10,7 +10,7 @@ func (c *Client) RunNativeQuery(databaseID int, sql string) (*QueryResult, error
 	query := DatasetQuery{
 		Database: databaseID,
 		Type:     "native",
-		Native:   NativeQuery{Query: sql},
+		Native:   &NativeQuery{Query: sql},
 	}
 
 	resp, err := c.Post("/api/dataset/", query)
@@ -31,10 +31,81 @@ func (c *Client) ExportNativeQuery(databaseID int, sql string, format string) ([
 	query := DatasetQuery{
 		Database: databaseID,
 		Type:     "native",
-		Native:   NativeQuery{Query: sql},
+		Native:   &NativeQuery{Query: sql},
 	}
 
-	// The export endpoint wraps the dataset query in a "query" key.
+	return c.exportQuery(query, format)
+}
+
+// RunStructuredQuery executes an MBQL structured query with filters.
+func (c *Client) RunStructuredQuery(databaseID, tableID int, filters [][]any, limit int) (*QueryResult, error) {
+	sq := &StructuredQuery{
+		SourceTable: tableID,
+	}
+
+	if len(filters) == 1 {
+		sq.Filter = filters[0]
+	} else if len(filters) > 1 {
+		filter := []any{"and"}
+		for _, f := range filters {
+			filter = append(filter, f)
+		}
+		sq.Filter = filter
+	}
+
+	if limit > 0 {
+		sq.Limit = limit
+	}
+
+	query := DatasetQuery{
+		Database: databaseID,
+		Type:     "query",
+		Query:    sq,
+	}
+
+	resp, err := c.Post("/api/dataset/", query)
+	if err != nil {
+		return nil, err
+	}
+
+	var result QueryResult
+	if err := c.DecodeJSON(resp, &result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// ExportStructuredQuery executes an MBQL structured query and returns the result in the specified export format.
+func (c *Client) ExportStructuredQuery(databaseID, tableID int, filters [][]any, limit int, format string) ([]byte, error) {
+	sq := &StructuredQuery{
+		SourceTable: tableID,
+	}
+
+	if len(filters) == 1 {
+		sq.Filter = filters[0]
+	} else if len(filters) > 1 {
+		filter := []any{"and"}
+		for _, f := range filters {
+			filter = append(filter, f)
+		}
+		sq.Filter = filter
+	}
+
+	if limit > 0 {
+		sq.Limit = limit
+	}
+
+	query := DatasetQuery{
+		Database: databaseID,
+		Type:     "query",
+		Query:    sq,
+	}
+
+	return c.exportQuery(query, format)
+}
+
+func (c *Client) exportQuery(query DatasetQuery, format string) ([]byte, error) {
 	body := map[string]any{
 		"query": query,
 	}

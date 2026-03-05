@@ -79,6 +79,11 @@ func classifyError(err error) (errorType, suggestion string) {
 	case strings.Contains(msg, "no database matching"),
 		strings.Contains(msg, "ambiguous database name"):
 		return "RESOLUTION_ERROR", "Use a database ID instead of a name"
+	case strings.Contains(msg, "no table matching"),
+		strings.Contains(msg, "ambiguous table name"):
+		return "RESOLUTION_ERROR", "Use a table ID instead of a name"
+	case strings.Contains(msg, "no field matching"):
+		return "RESOLUTION_ERROR", "Check field names with 'mb-cli table metadata <id>'"
 	default:
 		return "GENERAL_ERROR", ""
 	}

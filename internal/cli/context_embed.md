@@ -27,6 +27,7 @@ Set both environment variables (required):
 | `field summary <id>` | Summary statistics for a field | id (positional) | none |
 | `field values <id>` | Distinct values for a field | id (positional) | none |
 | `query sql` | Run a native SQL query | none | `--db`, `--sql` |
+| `query filter` | Run a structured query with field filters | none | `--db`, `--table`, `--where` |
 | `card list` | List saved questions | none | none |
 | `card get <id>` | Get card details | id (positional) | none |
 | `card run <id>` | Execute a saved question | id (positional) | none |
@@ -53,6 +54,16 @@ Set both environment variables (required):
 | `--limit` | int | no | 0 | Append LIMIT to SQL query |
 | `--fields` | string | no | | Comma-separated columns to include in output |
 
+### `query filter`
+| Flag | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `--db` | string | yes | | Database ID or name substring |
+| `--table` | string | yes | | Table ID or name substring |
+| `--where` | string[] | yes | | Filter in field=value format (repeatable) |
+| `--limit` | int | no | 0 | Maximum number of rows to return |
+| `--export` | string | no | | Export format: `csv`, `json`, `xlsx` |
+| `--fields` | string | no | | Comma-separated columns to include in output |
+
 ### `card run`
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
@@ -71,17 +82,27 @@ Agents commonly hallucinate these flags. They will cause errors:
 - `--database` (global) - does not exist; use `--db` on `query sql`
 - `--output` - does not exist; use `--format` instead
 - `--query` - does not exist; use `--sql` on `query sql`
-- `--table` (global) - does not exist; table ID is a positional arg
+- `--table` (global) - does not exist; use `--table` on `query filter` or pass table ID as a positional arg
 
 ## Database Name Resolution
 
-The `--db` flag on `query sql` accepts either:
+The `--db` flag on `query sql` and `query filter` accepts either:
 - A numeric database ID (e.g. `--db 1`) - used directly
 - A name substring (e.g. `--db prod`) - case-insensitive substring match
 
 Resolution errors:
 - Zero matches: `no database matching 'name' found`
 - Multiple matches: `ambiguous database name 'name', matches: [list]. Use database ID instead`
+
+## Table Name Resolution
+
+The `--table` flag on `query filter` accepts either:
+- A numeric table ID (e.g. `--table 42`) - used directly
+- A name substring (e.g. `--table users`) - case-insensitive substring match within the selected database
+
+Resolution errors:
+- Zero matches: `no table matching 'name' found`
+- Multiple matches: `ambiguous table name 'name', matches: [list]. Use table ID instead`
 
 ## Aliases
 
@@ -94,7 +115,7 @@ Resolution errors:
 
 When stdout is not a TTY (piped to another program), the default format is `json`. In a terminal, the default is `table`. An explicit `--format` flag always overrides auto-detection.
 
-Query result commands (`query sql`, `card run`, `table data`) format output as column/row tables in both formats.
+Query result commands (`query sql`, `query filter`, `card run`, `table data`) format output as column/row tables in both formats.
 
 ## Structured Error Output
 
@@ -138,6 +159,14 @@ mb-cli query sql --db 1 --sql "SELECT * FROM orders" --limit 50
 
 # Export query results as CSV
 mb-cli query sql --db prod --sql "SELECT * FROM users" --export csv
+
+# Filter rows using structured query (no SQL required)
+mb-cli query filter --db prod --table products --where "id=prod_1234"
+mb-cli query filter --db 1 --table users --where "name=alice" --where "active=true"
+mb-cli query filter --db 1 --table orders --where "status=pending" --limit 10
+
+# Export filtered results as CSV
+mb-cli query filter --db 1 --table products --where "id=prod_1234" --export csv
 
 # List saved questions and run one
 mb-cli card list
