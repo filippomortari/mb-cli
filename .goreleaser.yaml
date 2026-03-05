@@ -1,0 +1,75 @@
+version: 2
+
+project_name: mb-cli
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - main: ./cmd/mb/main.go
+    binary: mb-cli
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w -X github.com/andreagrandi/mb-cli/internal/version.Version={{.Version}}
+
+archives:
+  - name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - Merge pull request
+      - Merge branch
+      - go mod tidy
+
+release:
+  name_template: "Release v{{ .Version }}"
+  draft: false
+  prerelease: auto
+
+homebrew_casks:
+  - name: mb-cli
+    binaries:
+      - mb-cli
+    repository:
+      owner: andreagrandi
+      name: homebrew-tap
+      token: "{{ .Env.GORELEASER_GITHUB_TOKEN }}"
+    commit_author:
+      name: goreleaserbot
+      email: goreleaser@github.com
+    directory: Casks
+    homepage: "https://github.com/andreagrandi/mb-cli"
+    description: "mb-cli - A read-only CLI for the Metabase API"
