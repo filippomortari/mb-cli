@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-03-05
+
+- Add `query filter` command for structured MBQL queries with `--where` field filters
+- Table and field name resolution (case-insensitive substring match)
+- Agent-friendly enhancements: `context`, `schema`, TTY auto-detection, `--error-format json`, input validation, `--fields` filtering
+
 ## [0.1.1] - 2026-03-05
 
 - Fix Homebrew installation: switch from cask to formula to avoid macOS Gatekeeper blocking
