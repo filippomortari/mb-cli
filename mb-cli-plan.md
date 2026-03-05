@@ -130,7 +130,7 @@ mb-cli/
 
 ## Implementation Steps
 
-> **Progress: 9/13 steps completed**
+> **Progress: 10/13 steps completed**
 > ✅ = done, ⬚ = not started
 
 ### Step 1: Project Scaffolding + Config + Version ✅
@@ -355,7 +355,7 @@ Implement cross-entity search.
 
 ---
 
-### Step 10: GitHub CI/CD + Dependabot ⬚
+### Step 10: GitHub CI/CD + Dependabot ✅
 
 Set up CI pipeline, release workflow, and dependabot.
 
