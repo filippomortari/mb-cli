@@ -130,7 +130,7 @@ mb-cli/
 
 ## Implementation Steps
 
-> **Progress: 7/13 steps completed**
+> **Progress: 8/13 steps completed**
 > ✅ = done, ⬚ = not started
 
 ### Step 1: Project Scaffolding + Config + Version ✅
@@ -313,7 +313,7 @@ Implement native SQL query execution with database name resolution.
 
 ---
 
-### Step 8: Card (Saved Questions) Commands ⬚
+### Step 8: Card (Saved Questions) Commands ✅
 
 Implement listing and running saved questions.
 

@@ -99,6 +99,18 @@ type NativeQuery struct {
 	Query string `json:"query"`
 }
 
+// Card represents a Metabase saved question (card).
+type Card struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	Description  string `json:"description,omitempty"`
+	DatabaseID   int    `json:"database_id"`
+	Display      string `json:"display"`
+	QueryType    string `json:"query_type,omitempty"`
+	CollectionID *int   `json:"collection_id,omitempty"`
+	Archived     bool   `json:"archived"`
+}
+
 // FieldSummary represents summary statistics for a field.
 type FieldSummary struct {
 	Type  string `json:"type"`
