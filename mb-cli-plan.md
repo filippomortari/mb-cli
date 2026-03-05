@@ -130,7 +130,7 @@ mb-cli/
 
 ## Implementation Steps
 
-> **Progress: 12/13 steps completed**
+> **Progress: 12/14 steps completed**
 > ✅ = done, ⬚ = not started
 
 ### Step 1: Project Scaffolding + Config + Version ✅
@@ -565,6 +565,76 @@ mb-cli schema <command>                # JSON schema for command inputs
 
 ---
 
+### Step 14: Structured Query (Filter) Command ⬚
+
+Add a `query filter` command that builds Metabase structured queries (MBQL) instead of requiring raw SQL. This lets users and agents look up rows by field values with simple flags.
+
+**Usage:**
+```bash
+mb-cli query filter --db prod --table products --where "id=prod_1234"
+mb-cli query filter --db 1 --table users --where "name=alice" --where "active=true"
+mb-cli query filter --db 1 --table orders --where "status=pending" --limit 10
+mb-cli query filter --db 1 --table products --where "id=prod_1234" --export csv
+```
+
+**Files to create/modify:**
+- `internal/client/types.go` — add `StructuredQuery` struct, update `DatasetQuery` to use pointer fields (`*NativeQuery`, `*StructuredQuery`) so JSON omits the unused one
+- `internal/client/dataset.go` — add `RunStructuredQuery(databaseID, tableID int, filters [][]any, limit int) (*QueryResult, error)`, update existing methods for pointer `Native`
+- `internal/cli/query.go` — add `queryFilterCmd` with flags:
+  - `--db` (string, required) — database ID or name substring (reuses `resolveDatabaseID`)
+  - `--table` (string, required) — table ID or name substring (new `resolveTableID`)
+  - `--where` (string slice, required) — filter in `field=value` format (repeatable)
+  - `--limit` (int, optional) — max rows
+  - `--export` (string, optional) — export format (csv, json, xlsx)
+- `tests/dataset_test.go` — add tests for structured query request body, table/field resolution
+
+**Table name resolution** (new `resolveTableID` in `query.go`):
+- Numeric → use as table ID
+- Non-numeric → call `GetDatabaseMetadata(dbID)`, case-insensitive substring match on table names within that database
+- Error on zero/multiple matches (same pattern as `matchDatabaseByName`)
+
+**Field name resolution** (new `resolveFieldID` in `query.go`):
+- Parse `--where "field_name=value"` into field name + value
+- Call `GetTableMetadata(tableID)` to get fields
+- Case-insensitive exact match on field `name` or `display_name`
+- Return field ID for MBQL filter construction
+
+**MBQL query format** — POST `/api/dataset/`:
+```json
+{
+  "database": 1,
+  "type": "query",
+  "query": {
+    "source-table": 42,
+    "filter": ["and", ["=", ["field", 100, null], "prod_1234"]],
+    "limit": 10
+  }
+}
+```
+
+- Single filter: `["=", ["field", <field_id>, null], <value>]`
+- Multiple filters: `["and", <filter1>, <filter2>, ...]`
+- Only `=` operator for v1 (can extend later with `!=`, `>`, `<`, `contains`, etc.)
+
+**Tests:**
+- `TestRunStructuredQuery` — verify request body structure
+- `TestRunStructuredQueryMultipleFilters` — verify AND combination
+- `TestRunStructuredQueryWithLimit` — verify limit in query body
+- `TestResolveTableID` — numeric passthrough + name resolution
+- `TestParseWhereClause` — parsing `field=value` strings
+
+**Verification:**
+```bash
+make test
+make build
+./bin/mb-cli query filter --help
+./bin/mb-cli query filter --db prod --table products --where "id=prod_1234"
+./bin/mb-cli query filter --db prod --table products --where "id=prod_1234" --format table
+./bin/mb-cli query filter --db prod --table products --where "id=prod_1234" --export csv
+```
+
+---
+
 ## Development Note
 
 `MB_HOST` and `MB_API_KEY` are available in the project `.envrc` (loaded by direnv). After each step, **always smoke-test against the real Metabase API** as soon as there is something runnable — don't wait until all steps are done. For example, after Step 4 (database commands), run `make build && ./bin/mb-cli database list` to confirm the API integration works end-to-end, not just the unit tests.
@@ -613,6 +683,8 @@ mb-cli field values <id>                          # Distinct values
 
 mb-cli query sql --db <id-or-name> --sql "..."    # Run SQL query
 mb-cli query sql --db prod --sql "..." --export csv  # Export results
+mb-cli query filter --db <id-or-name> --table <name> --where "field=value"  # Structured query
+mb-cli query filter --db prod --table products --where "id=prod_1234"      # Filter by field
 
 mb-cli card list                                  # List saved questions
 mb-cli card get <id>                              # Card details
