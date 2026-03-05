@@ -87,6 +87,18 @@ type ResultColumn struct {
 	BaseType    string `json:"base_type"`
 }
 
+// DatasetQuery represents a query request to the Metabase dataset API.
+type DatasetQuery struct {
+	Database int         `json:"database"`
+	Type     string      `json:"type"`
+	Native   NativeQuery `json:"native"`
+}
+
+// NativeQuery represents the native SQL query part of a dataset query.
+type NativeQuery struct {
+	Query string `json:"query"`
+}
+
 // FieldSummary represents summary statistics for a field.
 type FieldSummary struct {
 	Type  string `json:"type"`

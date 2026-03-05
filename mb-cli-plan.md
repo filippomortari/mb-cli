@@ -130,7 +130,7 @@ mb-cli/
 
 ## Implementation Steps
 
-> **Progress: 6/13 steps completed**
+> **Progress: 7/13 steps completed**
 > ✅ = done, ⬚ = not started
 
 ### Step 1: Project Scaffolding + Config + Version ✅
@@ -279,7 +279,7 @@ Implement field inspection commands.
 
 ---
 
-### Step 7: SQL Query Command ⬚
+### Step 7: SQL Query Command ✅
 
 Implement native SQL query execution with database name resolution.
 
