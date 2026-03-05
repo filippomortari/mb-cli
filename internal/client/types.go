@@ -2,10 +2,10 @@ package client
 
 // Database represents a Metabase database.
 type Database struct {
-	ID      int    `json:"id"`
-	Name    string `json:"name"`
-	Engine  string `json:"engine"`
-	Details any    `json:"details,omitempty"`
+	ID      int     `json:"id"`
+	Name    string  `json:"name"`
+	Engine  string  `json:"engine"`
+	Details any     `json:"details,omitempty"`
 	Tables  []Table `json:"tables,omitempty"`
 }
 
@@ -39,27 +39,27 @@ type TableMetadata struct {
 
 // Field represents a Metabase field (column).
 type Field struct {
-	ID            int    `json:"id"`
-	Name          string `json:"name"`
-	DisplayName   string `json:"display_name"`
-	BaseType      string `json:"base_type"`
-	DatabaseType  string `json:"database_type"`
-	SemanticType  string `json:"semantic_type,omitempty"`
-	TableID       int    `json:"table_id"`
-	TableName     string `json:"table_name,omitempty"`
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	DisplayName  string `json:"display_name"`
+	BaseType     string `json:"base_type"`
+	DatabaseType string `json:"database_type"`
+	SemanticType string `json:"semantic_type,omitempty"`
+	TableID      int    `json:"table_id"`
+	TableName    string `json:"table_name,omitempty"`
 }
 
 // ForeignKey represents a foreign key relationship.
 type ForeignKey struct {
-	Relationship string         `json:"relationship"`
-	Origin       FKFieldRef     `json:"origin"`
-	Destination  FKFieldRef     `json:"destination"`
+	Relationship string     `json:"relationship"`
+	Origin       FKFieldRef `json:"origin"`
+	Destination  FKFieldRef `json:"destination"`
 }
 
 // FKFieldRef represents a field reference in a foreign key.
 type FKFieldRef struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
+	ID    int        `json:"id"`
+	Name  string     `json:"name"`
 	Table FKTableRef `json:"table"`
 }
 
@@ -131,6 +131,6 @@ type FieldSummary struct {
 
 // FieldValues represents distinct values for a field.
 type FieldValues struct {
-	FieldID int      `json:"field_id"`
-	Values  [][]any  `json:"values"`
+	FieldID int     `json:"field_id"`
+	Values  [][]any `json:"values"`
 }
