@@ -382,7 +382,7 @@ Configure multi-platform release builds and homebrew tap.
 **Files to create:**
 - `.goreleaser.yaml` (modeled on logbasset `.goreleaser.yaml`):
   - Project name: `mb-cli`
-  - Binary name: `mb`
+  - Binary name: `mb-cli`
   - Entry: `./cmd/mb/main.go`
   - CGO_ENABLED=0
   - Platforms: linux (amd64/arm64), darwin (amd64/arm64), windows (amd64, no arm64)
@@ -571,7 +571,7 @@ mb schema <command>                # JSON schema for command inputs
 
 ### Environment Variables
 ```bash
-export MB_HOST="https://supertab.metabaseapp.com"
+export MB_HOST="https://your-metabase-instance.com"
 export MB_API_KEY="your-api-key-here"
 ```
 
