@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 )
 
@@ -45,6 +46,33 @@ func (c *Client) RunCard(id int) (*QueryResult, error) {
 		return nil, err
 	}
 
+	return c.decodeCardQueryResult(resp)
+}
+
+// RunCardWithParams executes a saved question with parameter values.
+func (c *Client) RunCardWithParams(id int, params map[string]string) (*QueryResult, error) {
+	if len(params) == 0 {
+		return c.RunCard(id)
+	}
+
+	card, err := c.GetCard(id)
+	if err != nil {
+		return nil, err
+	}
+
+	body := map[string]any{
+		"parameters": buildCardQueryParameters(card, params),
+	}
+
+	resp, err := c.Post(fmt.Sprintf("/api/card/%d/query", id), body)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.decodeCardQueryResult(resp)
+}
+
+func (c *Client) decodeCardQueryResult(resp *http.Response) (*QueryResult, error) {
 	var result QueryResult
 	if err := c.DecodeJSON(resp, &result); err != nil {
 		return nil, err

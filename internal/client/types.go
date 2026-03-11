@@ -193,6 +193,14 @@ type ParameterValue struct {
 	Label string `json:"label,omitempty"`
 }
 
+// QueryParameter represents a parameter passed to a card or dashboard query.
+type QueryParameter struct {
+	ID     string `json:"id"`
+	Type   string `json:"type,omitempty"`
+	Target []any  `json:"target,omitempty"`
+	Value  any    `json:"value"`
+}
+
 // UnmarshalJSON supports Metabase parameter value tuples: [value] or [value, label].
 func (p *ParameterValue) UnmarshalJSON(data []byte) error {
 	var tuple []any

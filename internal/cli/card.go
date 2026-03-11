@@ -1,8 +1,10 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/andreagrandi/mb-cli/internal/client"
 	"github.com/andreagrandi/mb-cli/internal/formatter"
@@ -55,6 +57,7 @@ func init() {
 
 	cardGetCmd.Flags().Bool("full", false, "Include the full query definition and card metadata")
 	cardRunCmd.Flags().String("fields", "", "Comma-separated list of columns to include in output")
+	cardRunCmd.Flags().StringSlice("param", nil, "Parameter in key=value format (repeatable)")
 }
 
 func runCardList(cmd *cobra.Command, args []string) error {
@@ -106,21 +109,17 @@ func runCardRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	result, err := c.RunCard(id)
+	params, err := parseNamedParams(cmd)
 	if err != nil {
 		return err
 	}
 
-	format, _ := cmd.Flags().GetString("format")
-	fields, _ := cmd.Flags().GetString("fields")
-
-	columns := make([]string, len(result.Data.Columns))
-	for i, col := range result.Data.Columns {
-		columns[i] = col.Name
+	result, err := c.RunCardWithParams(id, params)
+	if err != nil {
+		return wrapParameterizedRunError(err)
 	}
 
-	columns, rows := formatter.FilterColumns(columns, result.Data.Rows, fields)
-	return formatter.FormatQueryResults(format, columns, rows, os.Stdout)
+	return formatQueryResultOutput(cmd, result)
 }
 
 func summarizeCard(card *client.Card) cardSummary {
@@ -134,4 +133,49 @@ func summarizeCard(card *client.Card) cardSummary {
 		CollectionID: card.CollectionID,
 		Archived:     card.Archived,
 	}
+}
+
+func parseNamedParams(cmd *cobra.Command) (map[string]string, error) {
+	values, err := cmd.Flags().GetStringSlice("param")
+	if err != nil {
+		return nil, err
+	}
+	if len(values) == 0 {
+		return nil, nil
+	}
+
+	params := make(map[string]string, len(values))
+	for _, value := range values {
+		parts := strings.SplitN(value, "=", 2)
+		if len(parts) != 2 || strings.TrimSpace(parts[0]) == "" {
+			return nil, fmt.Errorf("invalid parameter %q: expected key=value", value)
+		}
+		params[strings.TrimSpace(parts[0])] = parts[1]
+	}
+
+	return params, nil
+}
+
+func formatQueryResultOutput(cmd *cobra.Command, result *client.QueryResult) error {
+	format, _ := cmd.Flags().GetString("format")
+	fields, _ := cmd.Flags().GetString("fields")
+
+	columns := make([]string, len(result.Data.Columns))
+	for i, col := range result.Data.Columns {
+		columns[i] = col.Name
+	}
+
+	columns, rows := formatter.FilterColumns(columns, result.Data.Rows, fields)
+	return formatter.FormatQueryResults(format, columns, rows, os.Stdout)
+}
+
+func wrapParameterizedRunError(err error) error {
+	message := err.Error()
+	if strings.Contains(message, "API request failed with status 400") {
+		return fmt.Errorf("parameterized query failed: check parameter keys and values (%w)", err)
+	}
+	if strings.Contains(message, "API request failed with status 404") {
+		return fmt.Errorf("query target was not found (%w)", err)
+	}
+	return err
 }

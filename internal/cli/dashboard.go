@@ -38,6 +38,13 @@ var dashboardCardsCmd = &cobra.Command{
 	RunE:  runDashboardCards,
 }
 
+var dashboardRunCardCmd = &cobra.Command{
+	Use:   "run-card <dashboard-id> <dashcard-id> <card-id>",
+	Short: "Execute a dashboard card with parameters",
+	Args:  cobra.ExactArgs(3),
+	RunE:  runDashboardRunCard,
+}
+
 var dashboardParamsCmd = &cobra.Command{
 	Use:   "params",
 	Short: "Dashboard parameter commands",
@@ -97,10 +104,14 @@ func init() {
 	dashboardCmd.AddCommand(dashboardListCmd)
 	dashboardCmd.AddCommand(dashboardGetCmd)
 	dashboardCmd.AddCommand(dashboardCardsCmd)
+	dashboardCmd.AddCommand(dashboardRunCardCmd)
 	dashboardCmd.AddCommand(dashboardParamsCmd)
 
 	dashboardParamsCmd.AddCommand(dashboardParamsValuesCmd)
 	dashboardParamsCmd.AddCommand(dashboardParamsSearchCmd)
+
+	dashboardRunCardCmd.Flags().String("fields", "", "Comma-separated list of columns to include in output")
+	dashboardRunCardCmd.Flags().StringSlice("param", nil, "Parameter in key=value format (repeatable)")
 }
 
 func runDashboardList(cmd *cobra.Command, args []string) error {
@@ -211,6 +222,38 @@ func runDashboardParamValues(cmd *cobra.Command, args []string) error {
 
 func runDashboardParamSearch(cmd *cobra.Command, args []string) error {
 	return runDashboardParamLookup(cmd, args[0], args[1], args[2], true)
+}
+
+func runDashboardRunCard(cmd *cobra.Command, args []string) error {
+	dashboardID, err := strconv.Atoi(args[0])
+	if err != nil {
+		return err
+	}
+	dashcardID, err := strconv.Atoi(args[1])
+	if err != nil {
+		return err
+	}
+	cardID, err := strconv.Atoi(args[2])
+	if err != nil {
+		return err
+	}
+
+	params, err := parseNamedParams(cmd)
+	if err != nil {
+		return err
+	}
+
+	c, err := newClient(cmd)
+	if err != nil {
+		return err
+	}
+
+	result, err := c.RunDashboardCard(dashboardID, dashcardID, cardID, params)
+	if err != nil {
+		return wrapParameterizedRunError(err)
+	}
+
+	return formatQueryResultOutput(cmd, result)
 }
 
 func runDashboardParamLookup(cmd *cobra.Command, dashboardArg string, requestedKey string, query string, search bool) error {

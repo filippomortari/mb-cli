@@ -64,3 +64,22 @@ func (c *Client) SearchDashboardParamValues(dashboardID int, paramKey string, qu
 
 	return &values, nil
 }
+
+// RunDashboardCard executes a dashboard card with parameter values.
+func (c *Client) RunDashboardCard(dashboardID, dashcardID, cardID int, params map[string]string) (*QueryResult, error) {
+	dashboard, err := c.GetDashboard(dashboardID)
+	if err != nil {
+		return nil, err
+	}
+
+	body := map[string]any{
+		"parameters": buildDashboardQueryParameters(dashboard, params),
+	}
+
+	resp, err := c.Post(fmt.Sprintf("/api/dashboard/%d/dashcard/%d/card/%d/query", dashboardID, dashcardID, cardID), body)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.decodeCardQueryResult(resp)
+}
