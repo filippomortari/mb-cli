@@ -9,7 +9,7 @@ import (
 func (c *Client) ListDashboards() ([]Dashboard, error) {
 	resp, err := c.Get("/api/dashboard/", nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list dashboards: %w", err)
 	}
 
 	var dashboards []Dashboard
@@ -24,7 +24,7 @@ func (c *Client) ListDashboards() ([]Dashboard, error) {
 func (c *Client) GetDashboard(id int) (*Dashboard, error) {
 	resp, err := c.Get(fmt.Sprintf("/api/dashboard/%d", id), nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get dashboard %d: %w", id, err)
 	}
 
 	var dashboard Dashboard
@@ -39,7 +39,7 @@ func (c *Client) GetDashboard(id int) (*Dashboard, error) {
 func (c *Client) GetDashboardParamValues(dashboardID int, paramKey string) (*ParameterValues, error) {
 	resp, err := c.Get(fmt.Sprintf("/api/dashboard/%d/params/%s/values", dashboardID, url.PathEscape(paramKey)), nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get values for dashboard %d parameter %s: %w", dashboardID, paramKey, err)
 	}
 
 	var values ParameterValues
@@ -54,7 +54,7 @@ func (c *Client) GetDashboardParamValues(dashboardID int, paramKey string) (*Par
 func (c *Client) SearchDashboardParamValues(dashboardID int, paramKey string, query string) (*ParameterValues, error) {
 	resp, err := c.Get(fmt.Sprintf("/api/dashboard/%d/params/%s/search/%s", dashboardID, url.PathEscape(paramKey), url.PathEscape(query)), nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to search values for dashboard %d parameter %s: %w", dashboardID, paramKey, err)
 	}
 
 	var values ParameterValues
@@ -71,6 +71,10 @@ func (c *Client) RunDashboardCard(dashboardID, dashcardID, cardID int, params ma
 	if err != nil {
 		return nil, err
 	}
+	card, err := c.GetCard(cardID)
+	if err != nil {
+		return nil, err
+	}
 
 	body := map[string]any{
 		"parameters": buildDashboardQueryParameters(dashboard, params),
@@ -78,8 +82,8 @@ func (c *Client) RunDashboardCard(dashboardID, dashcardID, cardID int, params ma
 
 	resp, err := c.Post(fmt.Sprintf("/api/dashboard/%d/dashcard/%d/card/%d/query", dashboardID, dashcardID, cardID), body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to run dashboard %d card %d via dashcard %d: %w", dashboardID, cardID, dashcardID, err)
 	}
 
-	return c.decodeCardQueryResult(resp)
+	return c.decodeCardQueryResult(resp, card.DatabaseID)
 }
