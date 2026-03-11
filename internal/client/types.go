@@ -120,6 +120,39 @@ type Card struct {
 	Archived     bool   `json:"archived"`
 }
 
+// Dashboard represents a Metabase dashboard.
+type Dashboard struct {
+	ID          int             `json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description,omitempty"`
+	DashCards   []DashCard      `json:"dashcards,omitempty"`
+	Parameters  []DashParameter `json:"parameters,omitempty"`
+	Tabs        []DashTab       `json:"tabs,omitempty"`
+	Archived    bool            `json:"archived"`
+}
+
+// DashCard represents a card placed on a dashboard.
+type DashCard struct {
+	ID     int   `json:"id"`
+	CardID *int  `json:"card_id,omitempty"`
+	Card   *Card `json:"card,omitempty"`
+	TabID  *int  `json:"dashboard_tab_id,omitempty"`
+}
+
+// DashParameter represents a dashboard filter parameter.
+type DashParameter struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+	Type string `json:"type"`
+}
+
+// DashTab represents a dashboard tab.
+type DashTab struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
 // SearchResult represents an item returned by the Metabase search API.
 type SearchResult struct {
 	ID           int    `json:"id"`
