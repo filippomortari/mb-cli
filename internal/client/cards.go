@@ -1,6 +1,9 @@
 package client
 
-import "fmt"
+import (
+	"fmt"
+	"net/url"
+)
 
 // ListCards retrieves all saved questions (cards).
 func (c *Client) ListCards() ([]Card, error) {
@@ -19,7 +22,10 @@ func (c *Client) ListCards() ([]Card, error) {
 
 // GetCard retrieves a single card by ID.
 func (c *Client) GetCard(id int) (*Card, error) {
-	resp, err := c.Get(fmt.Sprintf("/api/card/%d", id), nil)
+	params := url.Values{}
+	params.Set("legacy-mbql", "true")
+
+	resp, err := c.Get(fmt.Sprintf("/api/card/%d", id), params)
 	if err != nil {
 		return nil, err
 	}

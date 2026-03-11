@@ -4,6 +4,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/andreagrandi/mb-cli/internal/client"
 	"github.com/andreagrandi/mb-cli/internal/formatter"
 	"github.com/spf13/cobra"
 )
@@ -34,6 +35,17 @@ var cardRunCmd = &cobra.Command{
 	RunE:  runCardRun,
 }
 
+type cardSummary struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	Description  string `json:"description,omitempty"`
+	DatabaseID   int    `json:"database_id"`
+	Display      string `json:"display"`
+	QueryType    string `json:"query_type,omitempty"`
+	CollectionID *int   `json:"collection_id,omitempty"`
+	Archived     bool   `json:"archived"`
+}
+
 func init() {
 	rootCmd.AddCommand(cardCmd)
 
@@ -41,6 +53,7 @@ func init() {
 	cardCmd.AddCommand(cardGetCmd)
 	cardCmd.AddCommand(cardRunCmd)
 
+	cardGetCmd.Flags().Bool("full", false, "Include the full query definition and card metadata")
 	cardRunCmd.Flags().String("fields", "", "Comma-separated list of columns to include in output")
 }
 
@@ -74,7 +87,12 @@ func runCardGet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return formatter.Output(cmd, card)
+	full, _ := cmd.Flags().GetBool("full")
+	if full {
+		return formatter.Output(cmd, card)
+	}
+
+	return formatter.Output(cmd, summarizeCard(card))
 }
 
 func runCardRun(cmd *cobra.Command, args []string) error {
@@ -103,4 +121,17 @@ func runCardRun(cmd *cobra.Command, args []string) error {
 
 	columns, rows := formatter.FilterColumns(columns, result.Data.Rows, fields)
 	return formatter.FormatQueryResults(format, columns, rows, os.Stdout)
+}
+
+func summarizeCard(card *client.Card) cardSummary {
+	return cardSummary{
+		ID:           card.ID,
+		Name:         card.Name,
+		Description:  card.Description,
+		DatabaseID:   card.DatabaseID,
+		Display:      card.Display,
+		QueryType:    card.QueryType,
+		CollectionID: card.CollectionID,
+		Archived:     card.Archived,
+	}
 }

@@ -98,26 +98,41 @@ type DatasetQuery struct {
 
 // NativeQuery represents the native SQL query part of a dataset query.
 type NativeQuery struct {
-	Query string `json:"query"`
+	Query        string                 `json:"query"`
+	TemplateTags map[string]TemplateTag `json:"template-tags,omitempty"`
+}
+
+// TemplateTag represents a native query template tag.
+type TemplateTag struct {
+	ID          string `json:"id,omitempty"`
+	Name        string `json:"name,omitempty"`
+	DisplayName string `json:"display-name,omitempty"`
+	Type        string `json:"type,omitempty"`
+	WidgetType  string `json:"widget-type,omitempty"`
+	Required    bool   `json:"required,omitempty"`
 }
 
 // StructuredQuery represents an MBQL structured query.
 type StructuredQuery struct {
-	SourceTable int   `json:"source-table"`
-	Filter      []any `json:"filter,omitempty"`
-	Limit       int   `json:"limit,omitempty"`
+	SourceTable  int   `json:"source-table"`
+	SourceCardID *int  `json:"source-card,omitempty"`
+	Filter       []any `json:"filter,omitempty"`
+	Limit        int   `json:"limit,omitempty"`
 }
 
 // Card represents a Metabase saved question (card).
 type Card struct {
-	ID           int    `json:"id"`
-	Name         string `json:"name"`
-	Description  string `json:"description,omitempty"`
-	DatabaseID   int    `json:"database_id"`
-	Display      string `json:"display"`
-	QueryType    string `json:"query_type,omitempty"`
-	CollectionID *int   `json:"collection_id,omitempty"`
-	Archived     bool   `json:"archived"`
+	ID                    int            `json:"id"`
+	Name                  string         `json:"name"`
+	Description           string         `json:"description,omitempty"`
+	DatabaseID            int            `json:"database_id"`
+	Display               string         `json:"display"`
+	QueryType             string         `json:"query_type,omitempty"`
+	CollectionID          *int           `json:"collection_id,omitempty"`
+	Archived              bool           `json:"archived"`
+	DatasetQuery          *DatasetQuery  `json:"dataset_query,omitempty"`
+	ResultMetadata        []Field        `json:"result_metadata,omitempty"`
+	VisualizationSettings map[string]any `json:"visualization_settings,omitempty"`
 }
 
 // Dashboard represents a Metabase dashboard.
