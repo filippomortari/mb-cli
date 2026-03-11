@@ -1,8 +1,11 @@
 package cli
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/andreagrandi/mb-cli/internal/client"
 	"github.com/andreagrandi/mb-cli/internal/formatter"
@@ -35,6 +38,25 @@ var dashboardCardsCmd = &cobra.Command{
 	RunE:  runDashboardCards,
 }
 
+var dashboardParamsCmd = &cobra.Command{
+	Use:   "params",
+	Short: "Dashboard parameter commands",
+}
+
+var dashboardParamsValuesCmd = &cobra.Command{
+	Use:   "values <dashboard-id> <param-key>",
+	Short: "List valid values for a dashboard parameter",
+	Args:  cobra.ExactArgs(2),
+	RunE:  runDashboardParamValues,
+}
+
+var dashboardParamsSearchCmd = &cobra.Command{
+	Use:   "search <dashboard-id> <param-key> <query>",
+	Short: "Search valid values for a dashboard parameter",
+	Args:  cobra.ExactArgs(3),
+	RunE:  runDashboardParamSearch,
+}
+
 type dashboardListRow struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
@@ -51,12 +73,34 @@ type dashboardCardRow struct {
 	Display    string `json:"display,omitempty"`
 }
 
+type dashboardParamLookupResult struct {
+	DashboardID   int                        `json:"dashboard_id"`
+	RequestedKey  string                     `json:"requested_key"`
+	ResolvedKey   string                     `json:"resolved_key"`
+	Parameter     *client.DashParameter      `json:"parameter,omitempty"`
+	MappedCards   []dashboardParamMappingRow `json:"mapped_cards,omitempty"`
+	HasMoreValues bool                       `json:"has_more_values"`
+	Values        []client.ParameterValue    `json:"values"`
+	Query         string                     `json:"query,omitempty"`
+}
+
+type dashboardParamMappingRow struct {
+	DashcardID int    `json:"dashcard_id"`
+	CardID     string `json:"card_id,omitempty"`
+	CardName   string `json:"card_name,omitempty"`
+	Target     string `json:"target,omitempty"`
+}
+
 func init() {
 	rootCmd.AddCommand(dashboardCmd)
 
 	dashboardCmd.AddCommand(dashboardListCmd)
 	dashboardCmd.AddCommand(dashboardGetCmd)
 	dashboardCmd.AddCommand(dashboardCardsCmd)
+	dashboardCmd.AddCommand(dashboardParamsCmd)
+
+	dashboardParamsCmd.AddCommand(dashboardParamsValuesCmd)
+	dashboardParamsCmd.AddCommand(dashboardParamsSearchCmd)
 }
 
 func runDashboardList(cmd *cobra.Command, args []string) error {
@@ -159,4 +203,110 @@ func buildDashboardCardRows(dashboard *client.Dashboard) []dashboardCardRow {
 	}
 
 	return rows
+}
+
+func runDashboardParamValues(cmd *cobra.Command, args []string) error {
+	return runDashboardParamLookup(cmd, args[0], args[1], "", false)
+}
+
+func runDashboardParamSearch(cmd *cobra.Command, args []string) error {
+	return runDashboardParamLookup(cmd, args[0], args[1], args[2], true)
+}
+
+func runDashboardParamLookup(cmd *cobra.Command, dashboardArg string, requestedKey string, query string, search bool) error {
+	dashboardID, err := strconv.Atoi(dashboardArg)
+	if err != nil {
+		return err
+	}
+
+	c, err := newClient(cmd)
+	if err != nil {
+		return err
+	}
+
+	dashboard, err := c.GetDashboard(dashboardID)
+	if err != nil {
+		return err
+	}
+
+	parameter, resolvedKey := resolveDashboardParameter(dashboard, requestedKey)
+
+	var values *client.ParameterValues
+	if search {
+		values, err = c.SearchDashboardParamValues(dashboardID, resolvedKey, query)
+	} else {
+		values, err = c.GetDashboardParamValues(dashboardID, resolvedKey)
+	}
+	if err != nil {
+		return err
+	}
+
+	format, _ := cmd.Flags().GetString("format")
+	if format == "json" {
+		return formatter.Output(cmd, dashboardParamLookupResult{
+			DashboardID:   dashboardID,
+			RequestedKey:  requestedKey,
+			ResolvedKey:   resolvedKey,
+			Parameter:     parameter,
+			MappedCards:   buildDashboardParamMappingRows(dashboard, parameter),
+			HasMoreValues: values.HasMoreValues,
+			Values:        values.Values,
+			Query:         query,
+		})
+	}
+
+	return formatter.FormatDashboardParameterValuesTable(dashboard, parameter, values, os.Stdout)
+}
+
+func resolveDashboardParameter(dashboard *client.Dashboard, input string) (*client.DashParameter, string) {
+	for i := range dashboard.Parameters {
+		parameter := &dashboard.Parameters[i]
+		if parameter.ID == input || parameter.Slug == input || strings.EqualFold(parameter.Name, input) {
+			return parameter, parameter.ID
+		}
+	}
+
+	return nil, input
+}
+
+func buildDashboardParamMappingRows(dashboard *client.Dashboard, parameter *client.DashParameter) []dashboardParamMappingRow {
+	if dashboard == nil || parameter == nil {
+		return nil
+	}
+
+	rows := make([]dashboardParamMappingRow, 0)
+	for _, dashCard := range dashboard.DashCards {
+		for _, mapping := range dashCard.ParameterMappings {
+			if mapping.ParameterID != parameter.ID {
+				continue
+			}
+
+			row := dashboardParamMappingRow{
+				DashcardID: dashCard.ID,
+				Target:     stringifyDashboardTarget(mapping.Target),
+			}
+			if dashCard.CardID != nil {
+				row.CardID = strconv.Itoa(*dashCard.CardID)
+			}
+			if dashCard.Card != nil {
+				row.CardName = dashCard.Card.Name
+			}
+			rows = append(rows, row)
+		}
+	}
+
+	return rows
+}
+
+func stringifyDashboardTarget(target []any) string {
+	if len(target) == 0 {
+		return ""
+	}
+
+	data, err := json.Marshal(target)
+	if err != nil {
+		return fmt.Sprintf("%v", target)
+	}
+
+	return string(data)
 }

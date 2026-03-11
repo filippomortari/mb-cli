@@ -1,6 +1,7 @@
 package formatter
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"sort"
@@ -139,31 +140,7 @@ func formatDashboardCardsByTab(dashboard *client.Dashboard, writer io.Writer) er
 		if _, err := fmt.Fprintf(writer, "[%s]\n", tabName); err != nil {
 			return err
 		}
-
-		tw := tabwriter.NewWriter(writer, 0, 4, 2, ' ', 0)
-		if _, err := fmt.Fprintln(tw, "dashcard_id\tcard_id\tname\tquery_type\tdisplay"); err != nil {
-			return err
-		}
-		for _, dashCard := range cards {
-			cardID := ""
-			if dashCard.CardID != nil {
-				cardID = fmt.Sprintf("%d", *dashCard.CardID)
-			}
-
-			name := ""
-			queryType := ""
-			display := ""
-			if dashCard.Card != nil {
-				name = dashCard.Card.Name
-				queryType = dashCard.Card.QueryType
-				display = dashCard.Card.Display
-			}
-
-			if _, err := fmt.Fprintf(tw, "%d\t%s\t%s\t%s\t%s\n", dashCard.ID, cardID, name, queryType, display); err != nil {
-				return err
-			}
-		}
-		if err := tw.Flush(); err != nil {
+		if err := renderDashboardCardsTable(cards, writer); err != nil {
 			return err
 		}
 		if _, err := fmt.Fprintln(writer); err != nil {
@@ -172,14 +149,7 @@ func formatDashboardCardsByTab(dashboard *client.Dashboard, writer io.Writer) er
 	}
 
 	if len(grouped) == 0 {
-		tw := tabwriter.NewWriter(writer, 0, 4, 2, ' ', 0)
-		if _, err := fmt.Fprintln(tw, "dashcard_id\tcard_id\tname\tquery_type\tdisplay"); err != nil {
-			return err
-		}
-		if _, err := fmt.Fprintln(tw, "-\t-\t-\t-\t-"); err != nil {
-			return err
-		}
-		return tw.Flush()
+		return renderDashboardCardsTable(nil, writer)
 	}
 
 	leftovers := make([]string, 0, len(grouped))
@@ -193,30 +163,7 @@ func formatDashboardCardsByTab(dashboard *client.Dashboard, writer io.Writer) er
 		if _, err := fmt.Fprintf(writer, "[%s]\n", tabName); err != nil {
 			return err
 		}
-		tw := tabwriter.NewWriter(writer, 0, 4, 2, ' ', 0)
-		if _, err := fmt.Fprintln(tw, "dashcard_id\tcard_id\tname\tquery_type\tdisplay"); err != nil {
-			return err
-		}
-		for _, dashCard := range grouped[tabName] {
-			cardID := ""
-			if dashCard.CardID != nil {
-				cardID = fmt.Sprintf("%d", *dashCard.CardID)
-			}
-
-			name := ""
-			queryType := ""
-			display := ""
-			if dashCard.Card != nil {
-				name = dashCard.Card.Name
-				queryType = dashCard.Card.QueryType
-				display = dashCard.Card.Display
-			}
-
-			if _, err := fmt.Fprintf(tw, "%d\t%s\t%s\t%s\t%s\n", dashCard.ID, cardID, name, queryType, display); err != nil {
-				return err
-			}
-		}
-		if err := tw.Flush(); err != nil {
+		if err := renderDashboardCardsTable(grouped[tabName], writer); err != nil {
 			return err
 		}
 		if _, err := fmt.Fprintln(writer); err != nil {
@@ -225,4 +172,147 @@ func formatDashboardCardsByTab(dashboard *client.Dashboard, writer io.Writer) er
 	}
 
 	return nil
+}
+
+// FormatDashboardParameterValuesTable renders parameter metadata, mappings, and values.
+func FormatDashboardParameterValuesTable(dashboard *client.Dashboard, parameter *client.DashParameter, values *client.ParameterValues, writer io.Writer) error {
+	tw := tabwriter.NewWriter(writer, 0, 4, 2, ' ', 0)
+	fmt.Fprintf(tw, "dashboard_id\t%d\n", dashboard.ID)
+	if parameter != nil {
+		fmt.Fprintf(tw, "parameter_id\t%s\n", parameter.ID)
+		fmt.Fprintf(tw, "parameter_name\t%s\n", parameter.Name)
+		fmt.Fprintf(tw, "parameter_slug\t%s\n", parameter.Slug)
+		fmt.Fprintf(tw, "parameter_type\t%s\n", parameter.Type)
+	}
+	fmt.Fprintf(tw, "has_more_values\t%t\n", values.HasMoreValues)
+	if err := tw.Flush(); err != nil {
+		return err
+	}
+
+	if _, err := fmt.Fprintln(writer); err != nil {
+		return err
+	}
+
+	if err := formatDashboardParameterMappings(dashboard, parameter, writer); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintln(writer); err != nil {
+		return err
+	}
+
+	if _, err := fmt.Fprintln(writer, "Values"); err != nil {
+		return err
+	}
+	tw = tabwriter.NewWriter(writer, 0, 4, 2, ' ', 0)
+	if _, err := fmt.Fprintln(tw, "value\tlabel"); err != nil {
+		return err
+	}
+	if len(values.Values) == 0 {
+		if _, err := fmt.Fprintln(tw, "-\t-"); err != nil {
+			return err
+		}
+		return tw.Flush()
+	}
+	for _, value := range values.Values {
+		if _, err := fmt.Fprintf(tw, "%s\t%s\n", stringify(value.Value), value.Label); err != nil {
+			return err
+		}
+	}
+	return tw.Flush()
+}
+
+func formatDashboardParameterMappings(dashboard *client.Dashboard, parameter *client.DashParameter, writer io.Writer) error {
+	if _, err := fmt.Fprintln(writer, "Mapped Cards"); err != nil {
+		return err
+	}
+
+	tw := tabwriter.NewWriter(writer, 0, 4, 2, ' ', 0)
+	if _, err := fmt.Fprintln(tw, "dashcard_id\tcard_id\tcard_name\ttarget"); err != nil {
+		return err
+	}
+	if parameter == nil {
+		if _, err := fmt.Fprintln(tw, "-\t-\t-\t-"); err != nil {
+			return err
+		}
+		return tw.Flush()
+	}
+
+	found := false
+	for _, dashCard := range dashboard.DashCards {
+		for _, mapping := range dashCard.ParameterMappings {
+			if mapping.ParameterID != parameter.ID {
+				continue
+			}
+
+			found = true
+			cardID := ""
+			if dashCard.CardID != nil {
+				cardID = fmt.Sprintf("%d", *dashCard.CardID)
+			}
+			cardName := ""
+			if dashCard.Card != nil {
+				cardName = dashCard.Card.Name
+			}
+			target := stringifyMappingTarget(mapping.Target)
+			if _, err := fmt.Fprintf(tw, "%d\t%s\t%s\t%s\n", dashCard.ID, cardID, cardName, target); err != nil {
+				return err
+			}
+		}
+	}
+
+	if !found {
+		if _, err := fmt.Fprintln(tw, "-\t-\t-\t-"); err != nil {
+			return err
+		}
+	}
+
+	return tw.Flush()
+}
+
+func renderDashboardCardsTable(cards []client.DashCard, writer io.Writer) error {
+	tw := tabwriter.NewWriter(writer, 0, 4, 2, ' ', 0)
+	if _, err := fmt.Fprintln(tw, "dashcard_id\tcard_id\tname\tquery_type\tdisplay"); err != nil {
+		return err
+	}
+	if len(cards) == 0 {
+		if _, err := fmt.Fprintln(tw, "-\t-\t-\t-\t-"); err != nil {
+			return err
+		}
+		return tw.Flush()
+	}
+
+	for _, dashCard := range cards {
+		cardID := ""
+		if dashCard.CardID != nil {
+			cardID = fmt.Sprintf("%d", *dashCard.CardID)
+		}
+
+		name := ""
+		queryType := ""
+		display := ""
+		if dashCard.Card != nil {
+			name = dashCard.Card.Name
+			queryType = dashCard.Card.QueryType
+			display = dashCard.Card.Display
+		}
+
+		if _, err := fmt.Fprintf(tw, "%d\t%s\t%s\t%s\t%s\n", dashCard.ID, cardID, name, queryType, display); err != nil {
+			return err
+		}
+	}
+
+	return tw.Flush()
+}
+
+func stringifyMappingTarget(target []any) string {
+	if len(target) == 0 {
+		return ""
+	}
+
+	data, err := json.Marshal(target)
+	if err != nil {
+		return fmt.Sprintf("%v", target)
+	}
+
+	return string(data)
 }

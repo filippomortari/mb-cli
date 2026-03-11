@@ -1,5 +1,10 @@
 package client
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 // Database represents a Metabase database.
 type Database struct {
 	ID      int     `json:"id"`
@@ -148,10 +153,11 @@ type Dashboard struct {
 
 // DashCard represents a card placed on a dashboard.
 type DashCard struct {
-	ID     int   `json:"id"`
-	CardID *int  `json:"card_id,omitempty"`
-	Card   *Card `json:"card,omitempty"`
-	TabID  *int  `json:"dashboard_tab_id,omitempty"`
+	ID                int                    `json:"id"`
+	CardID            *int                   `json:"card_id,omitempty"`
+	Card              *Card                  `json:"card,omitempty"`
+	TabID             *int                   `json:"dashboard_tab_id,omitempty"`
+	ParameterMappings []DashParameterMapping `json:"parameter_mappings,omitempty"`
 }
 
 // DashParameter represents a dashboard filter parameter.
@@ -166,6 +172,55 @@ type DashParameter struct {
 type DashTab struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
+}
+
+// DashParameterMapping describes how a dashboard parameter maps to a card target.
+type DashParameterMapping struct {
+	CardID      int    `json:"card_id,omitempty"`
+	ParameterID string `json:"parameter_id"`
+	Target      []any  `json:"target,omitempty"`
+}
+
+// ParameterValues represents valid values for a dashboard parameter.
+type ParameterValues struct {
+	Values        []ParameterValue `json:"values"`
+	HasMoreValues bool             `json:"has_more_values"`
+}
+
+// ParameterValue represents a value and optional display label for a parameter.
+type ParameterValue struct {
+	Value any    `json:"value"`
+	Label string `json:"label,omitempty"`
+}
+
+// UnmarshalJSON supports Metabase parameter value tuples: [value] or [value, label].
+func (p *ParameterValue) UnmarshalJSON(data []byte) error {
+	var tuple []any
+	if err := json.Unmarshal(data, &tuple); err == nil {
+		switch len(tuple) {
+		case 0:
+			p.Value = nil
+			p.Label = ""
+			return nil
+		case 1:
+			p.Value = tuple[0]
+			p.Label = ""
+			return nil
+		default:
+			p.Value = tuple[0]
+			p.Label = fmt.Sprintf("%v", tuple[1])
+			return nil
+		}
+	}
+
+	var scalar any
+	if err := json.Unmarshal(data, &scalar); err != nil {
+		return err
+	}
+
+	p.Value = scalar
+	p.Label = ""
+	return nil
 }
 
 // SearchResult represents an item returned by the Metabase search API.

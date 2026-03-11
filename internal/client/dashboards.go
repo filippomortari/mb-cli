@@ -1,6 +1,9 @@
 package client
 
-import "fmt"
+import (
+	"fmt"
+	"net/url"
+)
 
 // ListDashboards retrieves all dashboards.
 func (c *Client) ListDashboards() ([]Dashboard, error) {
@@ -30,4 +33,34 @@ func (c *Client) GetDashboard(id int) (*Dashboard, error) {
 	}
 
 	return &dashboard, nil
+}
+
+// GetDashboardParamValues retrieves valid values for a dashboard parameter.
+func (c *Client) GetDashboardParamValues(dashboardID int, paramKey string) (*ParameterValues, error) {
+	resp, err := c.Get(fmt.Sprintf("/api/dashboard/%d/params/%s/values", dashboardID, url.PathEscape(paramKey)), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var values ParameterValues
+	if err := c.DecodeJSON(resp, &values); err != nil {
+		return nil, err
+	}
+
+	return &values, nil
+}
+
+// SearchDashboardParamValues searches dashboard parameter values.
+func (c *Client) SearchDashboardParamValues(dashboardID int, paramKey string, query string) (*ParameterValues, error) {
+	resp, err := c.Get(fmt.Sprintf("/api/dashboard/%d/params/%s/search/%s", dashboardID, url.PathEscape(paramKey), url.PathEscape(query)), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var values ParameterValues
+	if err := c.DecodeJSON(resp, &values); err != nil {
+		return nil, err
+	}
+
+	return &values, nil
 }
