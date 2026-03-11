@@ -119,7 +119,7 @@ type TemplateTag struct {
 
 // StructuredQuery represents an MBQL structured query.
 type StructuredQuery struct {
-	SourceTable  int   `json:"source-table"`
+	SourceTable  any   `json:"source-table"`
 	SourceCardID *int  `json:"source-card,omitempty"`
 	Filter       []any `json:"filter,omitempty"`
 	Limit        int   `json:"limit,omitempty"`

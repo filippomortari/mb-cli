@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-03-12
+
+- Add dashboard inspection commands for listing dashboards, viewing tabs and dashcards, and summarizing dashboard dependencies
+- Expand card inspection with `card get --full`, dashboard parameter lookup, and parameterized card/dashboard execution
+- Improve dashboard query safety with clearer error messages and redaction-aware parameterized query handling
+
 ## [0.1.3] - 2026-03-05
 
 - PII redaction enabled by default: query result columns with Metabase PII semantic types (Email, Name, Phone, etc.) are replaced with `[REDACTED]`

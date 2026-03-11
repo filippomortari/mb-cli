@@ -39,6 +39,18 @@ func TestClassifyConfigError(t *testing.T) {
 			hasSuggestion: true,
 		},
 		{
+			name:          "dashboard not found",
+			errMsg:        "failed to get dashboard 298: API request failed with status 404: Not found",
+			expectedType:  "API_ERROR",
+			hasSuggestion: true,
+		},
+		{
+			name:          "parameterized query failure",
+			errMsg:        "parameterized query failed: check parameter keys and values (API request failed with status 400: bad request)",
+			expectedType:  "API_ERROR",
+			hasSuggestion: true,
+		},
+		{
 			name:         "api 404",
 			errMsg:       "API request failed with status 404: Not Found",
 			expectedType: "API_ERROR",
