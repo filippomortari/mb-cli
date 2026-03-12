@@ -2,11 +2,11 @@
 
 ## [Unreleased]
 
-## [0.1.4] - 2026-03-12
+## [0.2.0] - 2026-03-12
 
 - Add dashboard inspection commands for listing dashboards, viewing tabs and dashcards, and summarizing dashboard dependencies
 - Expand card inspection with `card get --full`, dashboard parameter lookup, and parameterized card/dashboard execution
-- Improve dashboard query safety with clearer error messages and redaction-aware parameterized query handling
+- Improve dashboard query safety with clearer error messages, redaction-aware parameter handling, and updated documentation/tests
 
 ## [0.1.3] - 2026-03-05
 
