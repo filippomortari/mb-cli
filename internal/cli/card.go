@@ -1,9 +1,12 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
+	"github.com/andreagrandi/mb-cli/internal/client"
 	"github.com/andreagrandi/mb-cli/internal/formatter"
 	"github.com/spf13/cobra"
 )
@@ -34,6 +37,17 @@ var cardRunCmd = &cobra.Command{
 	RunE:  runCardRun,
 }
 
+type cardSummary struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	Description  string `json:"description,omitempty"`
+	DatabaseID   int    `json:"database_id"`
+	Display      string `json:"display"`
+	QueryType    string `json:"query_type,omitempty"`
+	CollectionID *int   `json:"collection_id,omitempty"`
+	Archived     bool   `json:"archived"`
+}
+
 func init() {
 	rootCmd.AddCommand(cardCmd)
 
@@ -41,7 +55,9 @@ func init() {
 	cardCmd.AddCommand(cardGetCmd)
 	cardCmd.AddCommand(cardRunCmd)
 
+	cardGetCmd.Flags().Bool("full", false, "Include the full query definition and card metadata")
 	cardRunCmd.Flags().String("fields", "", "Comma-separated list of columns to include in output")
+	cardRunCmd.Flags().StringSlice("param", nil, "Parameter in key=value format (repeatable)")
 }
 
 func runCardList(cmd *cobra.Command, args []string) error {
@@ -74,7 +90,12 @@ func runCardGet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return formatter.Output(cmd, card)
+	full, _ := cmd.Flags().GetBool("full")
+	if full {
+		return formatter.Output(cmd, card)
+	}
+
+	return formatter.Output(cmd, summarizeCard(card))
 }
 
 func runCardRun(cmd *cobra.Command, args []string) error {
@@ -88,11 +109,54 @@ func runCardRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	result, err := c.RunCard(id)
+	params, err := parseNamedParams(cmd)
 	if err != nil {
 		return err
 	}
 
+	result, err := c.RunCardWithParams(id, params)
+	if err != nil {
+		return wrapParameterizedRunError(err)
+	}
+
+	return formatQueryResultOutput(cmd, result)
+}
+
+func summarizeCard(card *client.Card) cardSummary {
+	return cardSummary{
+		ID:           card.ID,
+		Name:         card.Name,
+		Description:  card.Description,
+		DatabaseID:   card.DatabaseID,
+		Display:      card.Display,
+		QueryType:    card.QueryType,
+		CollectionID: card.CollectionID,
+		Archived:     card.Archived,
+	}
+}
+
+func parseNamedParams(cmd *cobra.Command) (map[string]string, error) {
+	values, err := cmd.Flags().GetStringSlice("param")
+	if err != nil {
+		return nil, err
+	}
+	if len(values) == 0 {
+		return nil, nil
+	}
+
+	params := make(map[string]string, len(values))
+	for _, value := range values {
+		parts := strings.SplitN(value, "=", 2)
+		if len(parts) != 2 || strings.TrimSpace(parts[0]) == "" {
+			return nil, fmt.Errorf("invalid parameter %q: expected key=value", value)
+		}
+		params[strings.TrimSpace(parts[0])] = parts[1]
+	}
+
+	return params, nil
+}
+
+func formatQueryResultOutput(cmd *cobra.Command, result *client.QueryResult) error {
 	format, _ := cmd.Flags().GetString("format")
 	fields, _ := cmd.Flags().GetString("fields")
 
@@ -103,4 +167,15 @@ func runCardRun(cmd *cobra.Command, args []string) error {
 
 	columns, rows := formatter.FilterColumns(columns, result.Data.Rows, fields)
 	return formatter.FormatQueryResults(format, columns, rows, os.Stdout)
+}
+
+func wrapParameterizedRunError(err error) error {
+	message := err.Error()
+	if strings.Contains(message, "API request failed with status 400") {
+		return fmt.Errorf("parameterized query failed: check parameter keys and values (%w)", err)
+	}
+	if strings.Contains(message, "API request failed with status 404") {
+		return fmt.Errorf("query target was not found (%w)", err)
+	}
+	return err
 }

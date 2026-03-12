@@ -1,5 +1,10 @@
 package client
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 // Database represents a Metabase database.
 type Database struct {
 	ID      int     `json:"id"`
@@ -98,26 +103,132 @@ type DatasetQuery struct {
 
 // NativeQuery represents the native SQL query part of a dataset query.
 type NativeQuery struct {
-	Query string `json:"query"`
+	Query        string                 `json:"query"`
+	TemplateTags map[string]TemplateTag `json:"template-tags,omitempty"`
+}
+
+// TemplateTag represents a native query template tag.
+type TemplateTag struct {
+	ID          string `json:"id,omitempty"`
+	Name        string `json:"name,omitempty"`
+	DisplayName string `json:"display-name,omitempty"`
+	Type        string `json:"type,omitempty"`
+	WidgetType  string `json:"widget-type,omitempty"`
+	Required    bool   `json:"required,omitempty"`
 }
 
 // StructuredQuery represents an MBQL structured query.
 type StructuredQuery struct {
-	SourceTable int   `json:"source-table"`
-	Filter      []any `json:"filter,omitempty"`
-	Limit       int   `json:"limit,omitempty"`
+	SourceTable  any   `json:"source-table"`
+	SourceCardID *int  `json:"source-card,omitempty"`
+	Filter       []any `json:"filter,omitempty"`
+	Limit        int   `json:"limit,omitempty"`
 }
 
 // Card represents a Metabase saved question (card).
 type Card struct {
-	ID           int    `json:"id"`
-	Name         string `json:"name"`
-	Description  string `json:"description,omitempty"`
-	DatabaseID   int    `json:"database_id"`
-	Display      string `json:"display"`
-	QueryType    string `json:"query_type,omitempty"`
-	CollectionID *int   `json:"collection_id,omitempty"`
-	Archived     bool   `json:"archived"`
+	ID                    int            `json:"id"`
+	Name                  string         `json:"name"`
+	Description           string         `json:"description,omitempty"`
+	DatabaseID            int            `json:"database_id"`
+	Display               string         `json:"display"`
+	QueryType             string         `json:"query_type,omitempty"`
+	CollectionID          *int           `json:"collection_id,omitempty"`
+	Archived              bool           `json:"archived"`
+	DatasetQuery          *DatasetQuery  `json:"dataset_query,omitempty"`
+	ResultMetadata        []Field        `json:"result_metadata,omitempty"`
+	VisualizationSettings map[string]any `json:"visualization_settings,omitempty"`
+}
+
+// Dashboard represents a Metabase dashboard.
+type Dashboard struct {
+	ID          int             `json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description,omitempty"`
+	DashCards   []DashCard      `json:"dashcards,omitempty"`
+	Parameters  []DashParameter `json:"parameters,omitempty"`
+	Tabs        []DashTab       `json:"tabs,omitempty"`
+	Archived    bool            `json:"archived"`
+}
+
+// DashCard represents a card placed on a dashboard.
+type DashCard struct {
+	ID                int                    `json:"id"`
+	CardID            *int                   `json:"card_id,omitempty"`
+	Card              *Card                  `json:"card,omitempty"`
+	TabID             *int                   `json:"dashboard_tab_id,omitempty"`
+	ParameterMappings []DashParameterMapping `json:"parameter_mappings,omitempty"`
+}
+
+// DashParameter represents a dashboard filter parameter.
+type DashParameter struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+	Type string `json:"type"`
+}
+
+// DashTab represents a dashboard tab.
+type DashTab struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+// DashParameterMapping describes how a dashboard parameter maps to a card target.
+type DashParameterMapping struct {
+	CardID      int    `json:"card_id,omitempty"`
+	ParameterID string `json:"parameter_id"`
+	Target      []any  `json:"target,omitempty"`
+}
+
+// ParameterValues represents valid values for a dashboard parameter.
+type ParameterValues struct {
+	Values        []ParameterValue `json:"values"`
+	HasMoreValues bool             `json:"has_more_values"`
+}
+
+// ParameterValue represents a value and optional display label for a parameter.
+type ParameterValue struct {
+	Value any    `json:"value"`
+	Label string `json:"label,omitempty"`
+}
+
+// QueryParameter represents a parameter passed to a card or dashboard query.
+type QueryParameter struct {
+	ID     string `json:"id"`
+	Type   string `json:"type,omitempty"`
+	Target []any  `json:"target,omitempty"`
+	Value  any    `json:"value"`
+}
+
+// UnmarshalJSON supports Metabase parameter value tuples: [value] or [value, label].
+func (p *ParameterValue) UnmarshalJSON(data []byte) error {
+	var tuple []any
+	if err := json.Unmarshal(data, &tuple); err == nil {
+		switch len(tuple) {
+		case 0:
+			p.Value = nil
+			p.Label = ""
+			return nil
+		case 1:
+			p.Value = tuple[0]
+			p.Label = ""
+			return nil
+		default:
+			p.Value = tuple[0]
+			p.Label = fmt.Sprintf("%v", tuple[1])
+			return nil
+		}
+	}
+
+	var scalar any
+	if err := json.Unmarshal(data, &scalar); err != nil {
+		return err
+	}
+
+	p.Value = scalar
+	p.Label = ""
+	return nil
 }
 
 // SearchResult represents an item returned by the Metabase search API.

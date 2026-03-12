@@ -72,9 +72,17 @@ func classifyError(err error) (errorType, suggestion string) {
 	switch {
 	case strings.Contains(msg, "MB_HOST") || strings.Contains(msg, "MB_API_KEY"):
 		return "CONFIG_ERROR", "Set MB_HOST and MB_API_KEY environment variables"
+	case strings.Contains(msg, "parameterized query failed"):
+		return "API_ERROR", "Check parameter IDs with 'mb-cli dashboard get <id>' or 'mb-cli card get <id> --full'"
 	case strings.Contains(msg, "API request failed with status 401"),
 		strings.Contains(msg, "API request failed with status 403"):
-		return "AUTH_ERROR", "Check that MB_API_KEY is valid"
+		return "AUTH_ERROR", "Check that MB_API_KEY is valid and can access the requested resource"
+	case strings.Contains(msg, "failed to get dashboard") && strings.Contains(msg, "status 404"):
+		return "API_ERROR", "Check that the dashboard ID exists and is visible to this API key"
+	case strings.Contains(msg, "failed to get card") && strings.Contains(msg, "status 404"):
+		return "API_ERROR", "Check that the card ID exists and is visible to this API key"
+	case strings.Contains(msg, "failed to get values for dashboard") && strings.Contains(msg, "status 404"):
+		return "API_ERROR", "Check that the dashboard parameter ID exists for this dashboard"
 	case strings.Contains(msg, "API request failed with status"):
 		return "API_ERROR", ""
 	case strings.Contains(msg, "no database matching"),

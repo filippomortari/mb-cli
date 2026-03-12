@@ -137,8 +137,39 @@ mb-cli card list
 # Get card details
 mb-cli card get 10
 
+# Get the full card definition, including dataset_query and template tags
+mb-cli card get 10 --full
+
 # Execute a saved question
 mb-cli card run 10
+
+# Execute a saved question with parameters
+mb-cli card run 10 --param timeframe_days=14
+```
+
+### Dashboards
+
+```bash
+# List all dashboards
+mb-cli dashboard list
+
+# Get dashboard metadata, tabs, filters, and grouped cards
+mb-cli dashboard get 298
+
+# List the saved questions used by a dashboard
+mb-cli dashboard cards 298
+
+# Discover valid values for a dashboard filter
+mb-cli dashboard params values 298 merchant_name
+
+# Search dashboard filter values
+mb-cli dashboard params search 298 merchant_name acme
+
+# Execute a dashboard card with dashboard parameters applied
+mb-cli dashboard run-card 298 1201 398 --param merchant_name="Acme Corp"
+
+# Summarize tabs, parameter mappings, and source-card dependencies
+mb-cli dashboard analyze 298
 ```
 
 ### Search
@@ -175,7 +206,47 @@ mb-cli table metadata 42
 
 # 4. Query data
 mb-cli query sql --db 1 --sql "SELECT id, email FROM users WHERE created_at > '2024-01-01' LIMIT 10"
+
+# 5. Inspect a dashboard that depends on saved questions
+mb-cli dashboard analyze 298
 ```
+
+## Dashboard analysis workflow
+
+Example flow for dashboard `298`:
+
+```bash
+# 1. Inspect dashboard structure
+mb-cli dashboard get 298
+
+# 2. List the saved questions behind the dashboard
+mb-cli dashboard cards 298
+
+# 3. Inspect a card's full SQL or MBQL definition
+mb-cli card get 398 --full
+
+# 4. Discover valid parameter values
+mb-cli dashboard params values 298 merchant_name
+
+# 5. Summarize dependencies and assumption-backed cards
+mb-cli dashboard analyze 298
+```
+
+## API coverage
+
+The dashboard and parameter workflows use these Metabase endpoints:
+
+| Command | Endpoint |
+|---------|----------|
+| `dashboard list` | `GET /api/dashboard/` |
+| `dashboard get` | `GET /api/dashboard/:id` |
+| `dashboard cards` | `GET /api/dashboard/:id` |
+| `dashboard params values` | `GET /api/dashboard/:id/params/:param-key/values` |
+| `dashboard params search` | `GET /api/dashboard/:id/params/:param-key/search/:query` |
+| `dashboard run-card` | `POST /api/dashboard/:dashboard-id/dashcard/:dashcard-id/card/:card-id/query` |
+| `card get --full` | `GET /api/card/:id` |
+| `card run --param` | `POST /api/card/:card-id/query` |
+| `dashboard analyze` | `GET /api/dashboard/:id`, `GET /api/card/:id` |
 
 ## PII Redaction
 

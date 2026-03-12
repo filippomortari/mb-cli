@@ -41,6 +41,8 @@ func TestContextContentContainsKeyCommands(t *testing.T) {
 		"field get",
 		"query sql",
 		"card list",
+		"dashboard list",
+		"dashboard analyze",
 		"search",
 		"context",
 		"version",

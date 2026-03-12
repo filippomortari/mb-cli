@@ -31,6 +31,13 @@ Set both environment variables (required):
 | `card list` | List saved questions | none | none |
 | `card get <id>` | Get card details | id (positional) | none |
 | `card run <id>` | Execute a saved question | id (positional) | none |
+| `dashboard list` | List dashboards | none | none |
+| `dashboard get <id>` | Get dashboard details | id (positional) | none |
+| `dashboard cards <id>` | List cards used by a dashboard | id (positional) | none |
+| `dashboard analyze <id>` | Summarize dashboard dependencies | id (positional) | none |
+| `dashboard run-card <dashboard-id> <dashcard-id> <card-id>` | Execute a dashboard card | dashboard-id, dashcard-id, card-id (positional) | none |
+| `dashboard params values <dashboard-id> <param-key>` | List valid dashboard parameter values | dashboard-id, param-key (positional) | none |
+| `dashboard params search <dashboard-id> <param-key> <query>` | Search dashboard parameter values | dashboard-id, param-key, query (positional) | none |
 | `search <query>` | Search across Metabase items | query (positional) | none |
 | `context` | Print this agent context document | none | none |
 | `version` | Print version | none | none |
@@ -69,6 +76,18 @@ Set both environment variables (required):
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--fields` | string | no | | Comma-separated columns to include in output |
+| `--param` | string[] | no | | Parameter in `key=value` format (repeatable) |
+
+### `card get`
+| Flag | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `--full` | bool | no | false | Include `dataset_query`, template tags, result metadata, and visualization settings |
+
+### `dashboard run-card`
+| Flag | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `--fields` | string | no | | Comma-separated columns to include in output |
+| `--param` | string[] | no | | Parameter in `key=value` format (repeatable) |
 
 ### `search`
 | Flag | Type | Required | Default | Description |
@@ -117,6 +136,8 @@ Resolution errors:
 When stdout is not a TTY (piped to another program), the default format is `json`. In a terminal, the default is `table`. An explicit `--format` flag always overrides auto-detection.
 
 Query result commands (`query sql`, `query filter`, `card run`, `table data`) format output as column/row tables in both formats.
+
+Dashboard inspection commands default to concise summaries in table mode. Use `--format json` for full raw dashboard or analysis payloads.
 
 ## Structured Error Output
 
@@ -182,6 +203,12 @@ mb-cli query filter --db 1 --table products --where "id=prod_1234" --export csv
 # List saved questions and run one
 mb-cli card list
 mb-cli card run 5
+
+# Inspect dashboard structure and dependencies
+mb-cli dashboard get 298
+mb-cli dashboard cards 298
+mb-cli dashboard params values 298 merchant_name
+mb-cli dashboard analyze 298
 
 # Get table output for terminal reading
 mb-cli database list --format table
