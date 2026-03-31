@@ -25,16 +25,29 @@ go install github.com/andreagrandi/mb-cli/cmd/mb@latest
 
 ## Configuration
 
-Set two environment variables:
+Set `MB_HOST` and **one** of the two authentication variables:
+
+### Option 1: API key (recommended for long-lived access)
 
 ```bash
 export MB_HOST=https://your-metabase-instance.com
 export MB_API_KEY=your-api-key
 ```
 
-Both are required. `MB_HOST` is the base URL of your Metabase instance. `MB_API_KEY` is a [Metabase API key](https://www.metabase.com/docs/latest/people-and-groups/api-keys).
+`MB_API_KEY` is a [Metabase API key](https://www.metabase.com/docs/latest/people-and-groups/api-keys). Requires admin access to generate.
 
-Optional:
+### Option 2: Session token (when you don't have API key access)
+
+```bash
+export MB_HOST=https://your-metabase-instance.com
+export MB_SESSION_TOKEN=your-session-token
+```
+
+To get your session token: open your Metabase instance in Chrome → DevTools → Application → Cookies → copy the `metabase.SESSION` value. Session tokens expire when you log out or after the server's session timeout.
+
+If both `MB_API_KEY` and `MB_SESSION_TOKEN` are set, the session token takes precedence.
+
+### Optional
 
 ```bash
 export MB_REDACT_PII=false  # Disable PII redaction (enabled by default)
