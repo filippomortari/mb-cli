@@ -24,6 +24,10 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("either MB_API_KEY or MB_SESSION_TOKEN environment variable is required")
 	}
 
+	if apiKey != "" && sessionToken != "" {
+		return nil, fmt.Errorf("MB_API_KEY and MB_SESSION_TOKEN are mutually exclusive, set only one")
+	}
+
 	return &Config{
 		Host:         host,
 		APIKey:       apiKey,

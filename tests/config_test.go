@@ -53,7 +53,7 @@ func TestLoadConfig_SessionTokenOnly(t *testing.T) {
 	}
 }
 
-func TestLoadConfig_BothAuthMethods(t *testing.T) {
+func TestLoadConfig_BothAuthMethodsErrors(t *testing.T) {
 	os.Setenv("MB_HOST", "https://metabase.example.com")
 	os.Setenv("MB_API_KEY", "test-api-key")
 	os.Setenv("MB_SESSION_TOKEN", "test-session-token")
@@ -61,17 +61,14 @@ func TestLoadConfig_BothAuthMethods(t *testing.T) {
 	defer os.Unsetenv("MB_API_KEY")
 	defer os.Unsetenv("MB_SESSION_TOKEN")
 
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		t.Fatalf("expected no error, got: %v", err)
+	_, err := config.LoadConfig()
+	if err == nil {
+		t.Fatal("expected error when both MB_API_KEY and MB_SESSION_TOKEN are set")
 	}
 
-	if cfg.APIKey != "test-api-key" {
-		t.Errorf("expected api key 'test-api-key', got '%s'", cfg.APIKey)
-	}
-
-	if cfg.SessionToken != "test-session-token" {
-		t.Errorf("expected session token 'test-session-token', got '%s'", cfg.SessionToken)
+	expected := "MB_API_KEY and MB_SESSION_TOKEN are mutually exclusive, set only one"
+	if err.Error() != expected {
+		t.Errorf("expected error '%s', got '%s'", expected, err.Error())
 	}
 }
 

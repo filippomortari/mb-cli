@@ -45,7 +45,7 @@ export MB_SESSION_TOKEN=your-session-token
 
 To get your session token: open your Metabase instance in Chrome → DevTools → Application → Cookies → copy the `metabase.SESSION` value. Session tokens expire when you log out or after the server's session timeout.
 
-If both `MB_API_KEY` and `MB_SESSION_TOKEN` are set, the session token takes precedence.
+Setting both `MB_API_KEY` and `MB_SESSION_TOKEN` is an error — use one or the other.
 
 ### Optional
 

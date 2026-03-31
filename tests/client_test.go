@@ -332,41 +332,6 @@ func TestDo_SetsSessionTokenHeader(t *testing.T) {
 	}
 }
 
-func TestDo_SessionTokenTakesPrecedence(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sessionToken := r.Header.Get("X-Metabase-Session")
-		if sessionToken != "my-session" {
-			t.Errorf("expected X-Metabase-Session 'my-session', got '%s'", sessionToken)
-		}
-
-		apiKey := r.Header.Get("x-api-key")
-		if apiKey != "" {
-			t.Errorf("expected no x-api-key when session token is present, got '%s'", apiKey)
-		}
-
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{}`))
-	}))
-	defer server.Close()
-
-	cfg := &config.Config{
-		Host:         server.URL,
-		APIKey:       "my-api-key",
-		SessionToken: "my-session",
-	}
-	c := client.NewClient(cfg)
-
-	req, err := http.NewRequest("GET", server.URL+"/test", nil)
-	if err != nil {
-		t.Fatalf("failed to create request: %v", err)
-	}
-
-	resp, err := c.Do(req)
-	if err != nil {
-		t.Fatalf("request failed: %v", err)
-	}
-	defer resp.Body.Close()
-}
 
 func TestGet_WithSessionToken(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
