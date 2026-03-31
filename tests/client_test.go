@@ -265,3 +265,147 @@ func TestVerboseMode(t *testing.T) {
 	}
 	defer resp.Body.Close()
 }
+
+
+func newTestClientWithSessionToken(serverURL string) *client.Client {
+	cfg := &config.Config{
+		Host:         serverURL,
+		SessionToken: "test-session-token",
+	}
+	return client.NewClient(cfg)
+}
+
+func TestNewClient_WithSessionToken(t *testing.T) {
+	cfg := &config.Config{
+		Host:         "https://metabase.example.com",
+		SessionToken: "my-session-token",
+	}
+
+	c := client.NewClient(cfg)
+
+	if c.BaseURL != "https://metabase.example.com" {
+		t.Errorf("expected base URL 'https://metabase.example.com', got '%s'", c.BaseURL)
+	}
+
+	if c.SessionToken != "my-session-token" {
+		t.Errorf("expected session token 'my-session-token', got '%s'", c.SessionToken)
+	}
+}
+
+func TestDo_SetsSessionTokenHeader(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionToken := r.Header.Get("X-Metabase-Session")
+		if sessionToken != "test-session-token" {
+			t.Errorf("expected X-Metabase-Session 'test-session-token', got '%s'", sessionToken)
+		}
+
+		apiKey := r.Header.Get("x-api-key")
+		if apiKey != "" {
+			t.Errorf("expected no x-api-key header when using session token, got '%s'", apiKey)
+		}
+
+		contentType := r.Header.Get("Content-Type")
+		if contentType != "application/json" {
+			t.Errorf("expected Content-Type 'application/json', got '%s'", contentType)
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"ok": true}`))
+	}))
+	defer server.Close()
+
+	c := newTestClientWithSessionToken(server.URL)
+
+	req, err := http.NewRequest("GET", server.URL+"/test", nil)
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+
+	resp, err := c.Do(req)
+	if err != nil {
+		t.Fatalf("request failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected status 200, got %d", resp.StatusCode)
+	}
+}
+
+func TestDo_SessionTokenTakesPrecedence(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionToken := r.Header.Get("X-Metabase-Session")
+		if sessionToken != "my-session" {
+			t.Errorf("expected X-Metabase-Session 'my-session', got '%s'", sessionToken)
+		}
+
+		apiKey := r.Header.Get("x-api-key")
+		if apiKey != "" {
+			t.Errorf("expected no x-api-key when session token is present, got '%s'", apiKey)
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{}`))
+	}))
+	defer server.Close()
+
+	cfg := &config.Config{
+		Host:         server.URL,
+		APIKey:       "my-api-key",
+		SessionToken: "my-session",
+	}
+	c := client.NewClient(cfg)
+
+	req, err := http.NewRequest("GET", server.URL+"/test", nil)
+	if err != nil {
+		t.Fatalf("failed to create request: %v", err)
+	}
+
+	resp, err := c.Do(req)
+	if err != nil {
+		t.Fatalf("request failed: %v", err)
+	}
+	defer resp.Body.Close()
+}
+
+func TestGet_WithSessionToken(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionToken := r.Header.Get("X-Metabase-Session")
+		if sessionToken != "test-session-token" {
+			t.Errorf("expected X-Metabase-Session header, got '%s'", sessionToken)
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`[]`))
+	}))
+	defer server.Close()
+
+	c := newTestClientWithSessionToken(server.URL)
+
+	resp, err := c.Get("/api/database/", nil)
+	if err != nil {
+		t.Fatalf("GET request failed: %v", err)
+	}
+	defer resp.Body.Close()
+}
+
+func TestPost_WithSessionToken(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionToken := r.Header.Get("X-Metabase-Session")
+		if sessionToken != "test-session-token" {
+			t.Errorf("expected X-Metabase-Session header, got '%s'", sessionToken)
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{}`))
+	}))
+	defer server.Close()
+
+	c := newTestClientWithSessionToken(server.URL)
+
+	resp, err := c.Post("/api/dataset/", map[string]any{"query": "SELECT 1"})
+	if err != nil {
+		t.Fatalf("POST request failed: %v", err)
+	}
+	defer resp.Body.Close()
+}
